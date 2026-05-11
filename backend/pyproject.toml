@@ -1,0 +1,9 @@
+[project]
+name = "field-sample-management-backend"
+version = "0.1.0"
+description = "Backend scaffold for field sample management and public portal."
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

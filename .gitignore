@@ -1,0 +1,20 @@
+# Python
+backend/__pycache__/
+backend/*.py[cod]
+backend/*.pyo
+backend/.venv/
+backend/env/
+backend/.env
+backend/.env.*
+backend/alembic/versions/*.pyc
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env
+frontend/.env.*
+
+# System
+.DS_Store
+*.log
