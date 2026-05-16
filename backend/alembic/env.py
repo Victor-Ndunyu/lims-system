@@ -14,9 +14,9 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # Add your model's MetaData object here
-# from app.db.base import Base
-# target_metadata = Base.metadata
-target_metadata = None
+from app.models import Base
+
+target_metadata = Base.metadata
 
 config.set_main_option("sqlalchemy.url", settings.database_url)
 

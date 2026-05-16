@@ -1,0 +1,12 @@
+{
+  "/": "pages/index.html",
+  "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
+  "/_error": "pages/_error.js",
+  "/admin": "pages/admin.html",
+  "/admin/samples": "pages/admin/samples.html",
+  "/admin/samples/[id]": "pages/admin/samples/[id].html",
+  "/admin/samples/new": "pages/admin/samples/new.html",
+  "/public": "pages/public.html",
+  "/404": "pages/404.html"
+}

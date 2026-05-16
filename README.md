@@ -20,3 +20,12 @@ This repository contains the scaffold for a two-part system:
 ## Notes
 
 This scaffold is intentionally minimal. No business logic or data models are implemented yet, only configuration and folder structure.
+
+## Deployment
+
+See [docs/deployment.md](docs/deployment.md) for production environment variables, secret handling, migrations, backups, and the deployment checklist.
+
+The public and admin portals can be deployed separately from the same `frontend/` app:
+
+- Public portal: set `NEXT_PUBLIC_PORTAL_MODE=public`
+- Admin portal: set `NEXT_PUBLIC_PORTAL_MODE=admin`

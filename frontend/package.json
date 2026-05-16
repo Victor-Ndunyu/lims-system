@@ -4,18 +4,24 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:public": "cross-env NEXT_PUBLIC_PORTAL_MODE=public next build",
+    "build:admin": "cross-env NEXT_PUBLIC_PORTAL_MODE=admin next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.2.5",
+    "next": "^16.2.6",
     "react": "18.3.1",
     "react-dom": "18.3.1"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
   },
   "devDependencies": {
     "@types/node": "20.14.2",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
+    "cross-env": "7.0.3",
     "typescript": "5.6.2"
   }
 }
