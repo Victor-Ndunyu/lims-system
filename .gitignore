@@ -14,6 +14,8 @@ frontend/.next/
 frontend/out/
 frontend/.env
 frontend/.env.*
+frontend/dist/
+frontend/build/
 
 # System
 .DS_Store

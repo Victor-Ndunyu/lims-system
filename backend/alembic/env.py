@@ -18,7 +18,7 @@ from app.models import Base
 
 target_metadata = Base.metadata
 
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
 
 def run_migrations_offline():

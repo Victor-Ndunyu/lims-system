@@ -1,10 +1,14 @@
 import uuid
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, func, text
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, String, Text, func, text
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
 from app.db.types import GUID
+
+
+SAMPLE_STATUS_VALUES = ("Draft", "Submitted", "Approved", "Rejected", "Correction Requested", "Archived")
+VERIFICATION_STATUS_VALUES = ("Draft", "Pending", "Approved", "Rejected")
 
 
 class Sample(Base):
@@ -16,8 +20,8 @@ class Sample(Base):
     collection_date = Column(DateTime(timezone=True), nullable=False, index=True)
     collector_id = Column(GUID(), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     location_id = Column(GUID(), ForeignKey("locations.id", ondelete="SET NULL"), nullable=True, index=True)
-    status = Column(String(60), nullable=False, index=True, server_default=text("Draft"))
-    verification_status = Column(String(60), nullable=False, index=True, server_default=text("Pending"))
+    status = Column(Enum(*SAMPLE_STATUS_VALUES, name="sample_status", native_enum=False), nullable=False, index=True, server_default=text("'Draft'"))
+    verification_status = Column(Enum(*VERIFICATION_STATUS_VALUES, name="verification_status", native_enum=False), nullable=False, index=True, server_default=text("'Pending'"))
     public_visibility = Column(Boolean, nullable=False, default=False, server_default=text("false"), index=True)
     description = Column(Text, nullable=True)
     remarks = Column(Text, nullable=True)

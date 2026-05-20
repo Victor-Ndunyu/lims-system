@@ -39,7 +39,10 @@ def get_current_user(
 
 def require_roles(*allowed_roles: str):
     def role_dependency(current_user: User = Depends(get_current_user)) -> User:
-        if current_user.role is None or current_user.role.role_name not in allowed_roles:
+        role_name = current_user.role.role_name if current_user.role else None
+        if role_name == "super_admin":
+            return current_user
+        if role_name not in allowed_roles:
             raise HTTPException(status_code=403, detail="User does not have permission to perform this action")
         return current_user
 
