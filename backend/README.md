@@ -8,6 +8,27 @@ This directory contains the FastAPI backend scaffold for the field sample manage
 2. Install dependencies: `pip install -r requirements.txt`
 3. Copy `.env.example` to `.env` and update values.
 
+## Render deployment
+
+- Root directory: `backend`
+- Build command: `pip install -r requirements.txt`
+- Pre-deploy command: `python -m alembic upgrade head`
+- Start command: `./scripts/start.sh`
+
+The start script binds Uvicorn to `0.0.0.0` and reads the port from Render's `PORT` environment variable.
+
+Required Render environment variables:
+
+- `DATABASE_URL`
+- `SECRET_KEY`
+- `CORS_ORIGINS`
+- `ENVIRONMENT=production`
+- `ACCESS_TOKEN_EXPIRE_MINUTES=60`
+
+Health check endpoint:
+
+- `/health`
+
 ## Migrations
 
 - `alembic revision --autogenerate -m "init"`

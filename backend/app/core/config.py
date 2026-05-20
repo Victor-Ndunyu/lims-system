@@ -5,8 +5,8 @@ except ImportError:  # pragma: no cover
 
 
     class Settings(BaseSettings):
-        database_url: str
-        secret_key: str
+        database_url: str = ""
+        secret_key: str = ""
         environment: str = "development"
         access_token_expire_minutes: int = 60
         cors_origins: str = ""
@@ -23,8 +23,8 @@ else:
     class Settings(BaseSettings):
         model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-        database_url: str
-        secret_key: str
+        database_url: str = ""
+        secret_key: str = ""
         environment: str = "development"
         access_token_expire_minutes: int = 60
         cors_origins: str = ""
@@ -35,3 +35,9 @@ else:
 
 
 settings = Settings()
+
+if not settings.database_url:
+    raise RuntimeError("DATABASE_URL is required. Set it in the environment or backend/.env before starting the backend.")
+
+if not settings.secret_key:
+    raise RuntimeError("SECRET_KEY is required. Set it in the environment or backend/.env before starting the backend.")

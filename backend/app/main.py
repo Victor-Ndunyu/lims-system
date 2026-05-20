@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.api import api_router
 from app.core.config import settings
+from app.db.session import engine
 
 app = FastAPI(title="Field Sample Management API")
 
@@ -26,3 +28,25 @@ def read_root():
 @app.get("/healthz")
 def health_check():
     return {"status": "ok", "environment": settings.environment}
+
+
+@app.get("/health")
+def health():
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "status": "unhealthy",
+                "database": "unavailable",
+                "error": exc.__class__.__name__,
+            },
+        ) from exc
+
+    return {
+        "status": "healthy",
+        "environment": settings.environment,
+        "database": "available",
+    }
