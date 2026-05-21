@@ -18,6 +18,7 @@ async function request(path: string, options: RequestInit = {}) {
   const response = await fetch(`${apiBase}${path}`, {
     ...options,
     headers,
+    credentials: "include",
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
@@ -28,7 +29,13 @@ async function request(path: string, options: RequestInit = {}) {
 
 async function publicRequest(path: string, options: RequestInit = {}) {
   const apiBase = getApiBaseUrl();
-  const response = await fetch(`${apiBase}${path}`, options);
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+  const response = await fetch(`${apiBase}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
     throw new Error(payload?.detail || response.statusText || "Request failed");

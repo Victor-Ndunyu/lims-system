@@ -75,28 +75,28 @@ if (typeof window !== "undefined") {
 
 /**
  * API endpoints used throughout the application
- * All use the centralized API base URL
+ * All paths include /api prefix since backend routes are under app.include_router(api_router, prefix="/api")
  */
 export const API_ENDPOINTS = {
   // Authentication
-  AUTH_LOGIN: "/auth/login",
-  AUTH_LOGOUT: "/auth/logout",
-  AUTH_ME: "/auth/me",
+  AUTH_LOGIN: "/api/auth/login",
+  AUTH_LOGOUT: "/api/auth/logout",
+  AUTH_ME: "/api/auth/me",
 
   // Admin operations
-  ADMIN_STATS: "/admin/stats",
-  ADMIN_CHARTS: "/admin/charts",
-  ADMIN_USERS: "/admin/users",
-  ADMIN_ROLES: "/admin/roles",
-  ADMIN_PERMISSIONS: "/admin/permissions",
-  ADMIN_ROLE_PERMISSIONS: (roleId: string) => `/admin/roles/${roleId}/permissions`,
+  ADMIN_STATS: "/api/admin/stats",
+  ADMIN_CHARTS: "/api/admin/charts",
+  ADMIN_USERS: "/api/admin/users",
+  ADMIN_ROLES: "/api/admin/roles",
+  ADMIN_PERMISSIONS: "/api/admin/permissions",
+  ADMIN_ROLE_PERMISSIONS: (roleId: string) => `/api/admin/roles/${roleId}/permissions`,
 
   // Staff operations
-  STAFF_SAMPLES: "/staff/samples",
-  STAFF_SAMPLE_BY_ID: (id: string) => `/staff/samples/${id}`,
-  STAFF_SAMPLE_REVIEW: (id: string) => `/staff/samples/${id}/review`,
-  STAFF_LOOKUPS: "/staff/lookups",
+  STAFF_SAMPLES: "/api/staff/samples",
+  STAFF_SAMPLE_BY_ID: (id: string) => `/api/staff/samples/${id}`,
+  STAFF_SAMPLE_REVIEW: (id: string) => `/api/staff/samples/${id}/review`,
+  STAFF_LOOKUPS: "/api/staff/lookups",
 
   // Public operations
-  PUBLIC_SAMPLES: "/public/samples",
+  PUBLIC_SAMPLES: "/api/public/samples",
 } as const;

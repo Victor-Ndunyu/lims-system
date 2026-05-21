@@ -9,22 +9,24 @@ from app.db.session import engine
 app = FastAPI(title="Field Sample Management API")
 
 # CORS Configuration
-# Reads allowed origins from CORS_ORIGINS environment variable
-# Format: comma-separated list of full origins (e.g., https://myapp.com,https://preview-123.vercel.app)
+# Uses CORS_ORIGINS environment variable (comma-separated list)
+# Examples: https://example.com,https://app.example.com
 # Supports credentials and auth headers for authenticated requests
-origins = [
-    "https://lims-system-neon.vercel.app",
-    "http://localhost:3000",
+cors_origins = settings.cors_origin_list if settings.cors_origin_list else [
+    "https://lims-system-neon.vercel.app",  # Production frontend
+    "http://localhost:3000",  # Development frontend
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Include all routers under /api prefix
+# Auth, samples, and admin endpoints available at /api/auth, /api/samples, /api/admin, etc.
 app.include_router(api_router, prefix="/api")
 
 
