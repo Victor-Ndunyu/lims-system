@@ -1,5 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_ADMIN_API_URL || "/api";
-const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_PUBLIC_API_URL || API_BASE;
+import { getApiBaseUrl, API_ENDPOINTS } from "./api-config";
 
 function getAuthHeaders(): Record<string, string> {
   if (typeof window === "undefined") {
@@ -10,12 +9,13 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 async function request(path: string, options: RequestInit = {}) {
+  const apiBase = getApiBaseUrl();
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
   for (const [key, value] of Object.entries(getAuthHeaders())) {
     headers.set(key, value);
   }
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${apiBase}${path}`, {
     ...options,
     headers,
   });
@@ -27,7 +27,8 @@ async function request(path: string, options: RequestInit = {}) {
 }
 
 async function publicRequest(path: string, options: RequestInit = {}) {
-  const response = await fetch(`${PUBLIC_API_BASE}${path}`, options);
+  const apiBase = getApiBaseUrl();
+  const response = await fetch(`${apiBase}${path}`, options);
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
     throw new Error(payload?.detail || response.statusText || "Request failed");
@@ -81,72 +82,72 @@ export type AdminUser = {
 };
 
 export async function login(email: string, password: string) {
-  return request(`/auth/login`, { method: "POST", body: JSON.stringify({ email, password }) });
+  return request(API_ENDPOINTS.AUTH_LOGIN, { method: "POST", body: JSON.stringify({ email, password }) });
 }
 
 export async function logout() {
-  return request(`/auth/logout`, { method: "POST" });
+  return request(API_ENDPOINTS.AUTH_LOGOUT, { method: "POST" });
 }
 
 export async function fetchCurrentUser() {
-  return request(`/auth/me`);
+  return request(API_ENDPOINTS.AUTH_ME);
 }
 
 export async function fetchAdminStats(): Promise<AdminStats> {
-  return request(`/admin/stats`);
+  return request(API_ENDPOINTS.ADMIN_STATS);
 }
 
 export async function fetchAdminCharts(): Promise<AdminCharts> {
-  return request(`/admin/charts`);
+  return request(API_ENDPOINTS.ADMIN_CHARTS);
 }
 
 export async function fetchAdminUsers(): Promise<AdminUser[]> {
-  return request(`/admin/users`);
+  return request(API_ENDPOINTS.ADMIN_USERS);
 }
 
 export async function fetchAdminRoles(): Promise<RoleRead[]> {
-  return request(`/admin/roles`);
+  return request(API_ENDPOINTS.ADMIN_ROLES);
 }
 
 export async function fetchAdminPermissions(): Promise<PermissionRead[]> {
-  return request(`/admin/permissions`);
+  return request(API_ENDPOINTS.ADMIN_PERMISSIONS);
 }
 
 export async function assignPermissionsToRole(roleId: string, permissionKeys: string[]) {
-  return request(`/admin/roles/${roleId}/permissions`, {
+  return request(API_ENDPOINTS.ADMIN_ROLE_PERMISSIONS(roleId), {
     method: "POST",
     body: JSON.stringify(permissionKeys),
   });
 }
 export async function createAdminUser(payload: { full_name: string; email: string; password: string; role_name?: string }) {
-  return request(`/admin/users`, { method: "POST", body: JSON.stringify(payload) });
+  return request(API_ENDPOINTS.ADMIN_USERS, { method: "POST", body: JSON.stringify(payload) });
 }
 
 export async function fetchSamples(status?: string) {
   const query = status ? `?status=${encodeURIComponent(status)}` : "";
-  return request(`/staff/samples${query}`);
+  return request(`${API_ENDPOINTS.STAFF_SAMPLES}${query}`);
 }
 
 export async function fetchStaffLookups() {
-  return request(`/staff/lookups`);
+  return request(API_ENDPOINTS.STAFF_LOOKUPS);
 }
 
 export async function createSample(payload: unknown) {
-  return request(`/staff/samples`, { method: "POST", body: JSON.stringify(payload) });
+  return request(API_ENDPOINTS.STAFF_SAMPLES, { method: "POST", body: JSON.stringify(payload) });
 }
 
 export async function updateSample(sampleId: string, payload: unknown) {
-  return request(`/staff/samples/${sampleId}`, { method: "PUT", body: JSON.stringify(payload) });
+  return request(API_ENDPOINTS.STAFF_SAMPLE_BY_ID(sampleId), { method: "PUT", body: JSON.stringify(payload) });
 }
 
 export async function reviewSample(sampleId: string, payload: unknown) {
-  return request(`/staff/samples/${sampleId}/review`, { method: "POST", body: JSON.stringify(payload) });
+  return request(API_ENDPOINTS.STAFF_SAMPLE_REVIEW(sampleId), { method: "POST", body: JSON.stringify(payload) });
 }
 
 export async function fetchSample(sampleId: string) {
-  return request(`/staff/samples/${sampleId}`);
+  return request(API_ENDPOINTS.STAFF_SAMPLE_BY_ID(sampleId));
 }
 
 export async function fetchPublicSamples() {
-  return publicRequest(`/public/samples`);
+  return publicRequest(API_ENDPOINTS.PUBLIC_SAMPLES);
 }
