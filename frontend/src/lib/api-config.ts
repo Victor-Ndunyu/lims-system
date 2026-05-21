@@ -20,14 +20,9 @@
  * 3. "/api" (relative fallback)
  */
 export function getApiBaseUrl(): string {
-  // Check Vite environment variable
-  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-
   // Check Next.js environment variable
   if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   }
 
   // Fallback to relative URL (works with same-origin proxy)
