@@ -1,31 +1,30 @@
 /**
  * Central API Configuration Module
  *
- * Provides a single source of truth for API base URLs.
- * Supports both Next.js (process.env) and Vite (import.meta.env) patterns.
+ * Provides a single source of truth for API base URLs for Next.js.
+ * Uses Next.js environment variables (process.env.NEXT_PUBLIC_*).
  *
  * Environment Variables:
- * - NEXT_PUBLIC_API_URL: Full API base URL (e.g., http://localhost:8000/api or https://api.example.com)
+ * - NEXT_PUBLIC_API_URL: Full API base URL (e.g., http://localhost:8000 or https://api.example.com)
  * - Falls back to /api for relative URLs (works with same-origin proxy or API route)
  *
  * No secrets are exposed in this module - only public configuration.
  */
 
 /**
- * Get the API base URL from environment variables or defaults
+ * Get the API base URL from Next.js environment variables or defaults
  *
  * Priority:
- * 1. import.meta.env.VITE_API_URL (Vite)
- * 2. process.env.NEXT_PUBLIC_API_URL (Next.js)
- * 3. "/api" (relative fallback)
+ * 1. process.env.NEXT_PUBLIC_API_URL (Next.js public env var)
+ * 2. "/api" (relative fallback)
  */
 export function getApiBaseUrl(): string {
-  // Check Next.js environment variable
-  if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  // Next.js public environment variable (available at build time and runtime)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
   }
 
-  // Fallback to relative URL (works with same-origin proxy)
+  // Fallback to relative URL (works with same-origin proxy or API routes)
   return "/api";
 }
 
