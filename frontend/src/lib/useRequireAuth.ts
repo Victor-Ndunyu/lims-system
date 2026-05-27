@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { getStoredToken, getStoredUser } from "./session";
+import { getStoredToken, getStoredUser, isAdminRole } from "./session";
 
 export function useRequireAuth() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export function useRequireRole(role: string) {
       router.replace("/login");
       return;
     }
-    if (user.role_name !== role) {
+    if (role === "admin" ? !isAdminRole(user.role_name) : user.role_name !== role) {
       router.replace("/login");
     }
   }, [router, role]);

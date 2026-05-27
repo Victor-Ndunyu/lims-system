@@ -36,3 +36,7 @@ export function clearAuth() {
 export function isAuthenticated() {
   return Boolean(getStoredToken());
 }
+
+export function isAdminRole(roleName?: string | null) {
+  return roleName === "admin" || roleName === "super_admin";
+}

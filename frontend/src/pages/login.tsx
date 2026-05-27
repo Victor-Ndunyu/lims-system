@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState, type FormEvent } from "react";
 import { PageShell, Button } from "../components/ui";
 import { login } from "../lib/api";
-import { getStoredUser, storeAuth } from "../lib/session";
+import { getStoredUser, isAdminRole, storeAuth } from "../lib/session";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function LoginPage() {
   useEffect(() => {
     const existingUser = getStoredUser();
     if (existingUser) {
-      const destination = existingUser.role_name === "admin" ? "/admin" : "/staff";
+      const destination = isAdminRole(existingUser.role_name) ? "/admin" : "/staff";
       router.replace(destination);
     }
   }, [router]);
@@ -30,7 +30,7 @@ export default function LoginPage() {
         throw new Error("Unexpected login response");
       }
       storeAuth(response.access_token, response.user);
-      const destination = response.user.role_name === "admin" ? "/admin" : "/staff";
+      const destination = isAdminRole(response.user.role_name) ? "/admin" : "/staff";
       router.replace(destination);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
