@@ -103,7 +103,7 @@ REQUIRED:                   ⚪ Only needed to run seed script once
 
 ```
 NAME:                       FIRST_ADMIN_PASSWORD
-VALUE:                      Animalhealth123
+VALUE:                      <secure-password>
 REQUIRED:                   ⚪ Only needed to run seed script once
 SECURITY:                   🔴 Should be changed immediately after first login
 ```
@@ -134,7 +134,7 @@ PURPOSE:                    Supabase project endpoint (used by legacy auth code)
 
 ```
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-VALUE:                      sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm
+VALUE:                      sb_publishable_xxxxx
 SECURITY:                   🟢 Public - Safe to expose
 SOURCE:                     Supabase Dashboard → Settings → API → Publishable Key
 PURPOSE:                    Read-only Supabase API key

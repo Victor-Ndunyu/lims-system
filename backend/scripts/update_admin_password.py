@@ -6,10 +6,10 @@ Usage:
   python -m scripts.update_admin_password <email> <password> [database_url]
 
 Example:
-  python -m scripts.update_admin_password vndunyu@gmail.com Animalhealth123
+  python -m scripts.update_admin_password vndunyu@gmail.com <secure-password>
   
   With explicit database URL:
-  python -m scripts.update_admin_password vndunyu@gmail.com Animalhealth123 postgresql+psycopg://user:pass@host/db
+  python -m scripts.update_admin_password vndunyu@gmail.com <secure-password> postgresql+psycopg://user:pass@host/db
 """
 
 import sys
@@ -82,7 +82,7 @@ def update_admin_password(email: str, password: str, database_url: str | None = 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python scripts/update_admin_password.py <email> <password> [database_url]")
-        print("Example: python scripts/update_admin_password.py vndunyu@gmail.com Animalhealth123")
+        print("Example: python scripts/update_admin_password.py vndunyu@gmail.com <secure-password>")
         sys.exit(1)
     
     email = sys.argv[1]

@@ -39,7 +39,7 @@ Before proceeding, verify in Vercel Dashboard → Settings → Environment Varia
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` = `https://eijdouvaritqyiohautb.supabase.co`
   - [ ] Applied to: All environments
 
-- [ ] `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = `sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm`
+- [ ] `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = `sb_publishable_xxxxx`
   - [ ] Applied to: All environments
 
 ### Project Configuration

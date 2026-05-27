@@ -84,7 +84,7 @@ These are **embedded in the JavaScript bundle** and visible to users. Use only f
 |----------|-------|---------|----------|
 | `NEXT_PUBLIC_API_URL` | `https://lims-system-vogc.onrender.com` | Backend API base URL | ✅ Yes |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://eijdouvaritqyiohautb.supabase.co` | Supabase project endpoint | ✅ Yes |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm` | Supabase public key | ✅ Yes |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_xxxxx` | Supabase public key | ✅ Yes |
 | `NEXT_PUBLIC_PORTAL_MODE` | `admin` or `public` | Optional: build variant | ❌ No |
 
 ### Server-Only Variables
@@ -99,7 +99,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://eijdouvaritqyiohautb.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
 ```
 
 **Note:** `.env.local` is Git-ignored and never committed.
@@ -132,7 +132,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://eijdouvaritqyiohautb.supabase.co
 
 # Supabase public API key (safe to expose to browser)
 # Never use the Supabase secret key in a public environment
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
 
 # ============================================
 # OPTIONAL - PORTAL MODE
@@ -179,7 +179,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co
   - [ ] Applied to Development
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` = `https://eijdouvaritqyiohautb.supabase.co`
   - [ ] Applied to all environments
-- [ ] `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = `sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm`
+- [ ] `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = `sb_publishable_xxxxx`
   - [ ] Applied to all environments
 
 ### Git Strategy

@@ -197,7 +197,7 @@ npm run build:public
 ```env
 NEXT_PUBLIC_API_URL=https://lims-system-vogc.onrender.com
 NEXT_PUBLIC_SUPABASE_URL=https://eijdouvaritqyiohautb.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
 ```
 
 **Apply to:**

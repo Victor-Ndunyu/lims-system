@@ -124,7 +124,7 @@ Or push a new commit to trigger automatic redeploy.
 |----------|-------|--------------|
 | `NEXT_PUBLIC_API_URL` | https://lims-system-vogc.onrender.com | Vercel Dashboard |
 | `NEXT_PUBLIC_SUPABASE_URL` | https://eijdouvaritqyiohautb.supabase.co | Vercel Dashboard |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm | Vercel Dashboard |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | sb_publishable_xxxxx | Vercel Dashboard |
 
 ### For Local Development
 
@@ -132,7 +132,7 @@ Set in `frontend/.env.local`:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_SUPABASE_URL=https://eijdouvaritqyiohautb.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_EcxIvsfXi_XTknBomt2kYw_DV-Co_sm
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
 ```
 
 **Important:** `.env.local` is Git-ignored and never committed.
