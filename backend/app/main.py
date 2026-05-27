@@ -8,14 +8,18 @@ from app.db.session import engine
 
 app = FastAPI(title="Field Sample Management API")
 
-# CORS Configuration
-# Uses CORS_ORIGINS environment variable (comma-separated list)
-# Examples: https://example.com,https://app.example.com
-# Supports credentials and auth headers for authenticated requests
-cors_origins = settings.cors_origin_list if settings.cors_origin_list else [
-    "https://lims-system-neon.vercel.app",  # Production frontend
-    "http://localhost:3000",  # Development frontend
+DEFAULT_CORS_ORIGINS = [
+    "https://lims-system-neon.vercel.app",
+    "https://lims-systems-dv95.vercel.app",
+    "https://lims-system-dv95-205a4ic7p-victor-ndunyus-projects.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:3001",
 ]
+
+# CORS Configuration
+# Uses CORS_ORIGINS environment variable (comma-separated list) plus known
+# deployment origins so an incomplete Render env var does not break login.
+cors_origins = list(dict.fromkeys([*settings.cors_origin_list, *DEFAULT_CORS_ORIGINS]))
 
 app.add_middleware(
     CORSMiddleware,
