@@ -14,6 +14,7 @@ except ImportError:  # pragma: no cover
         class Config:
             env_file = ".env"
             env_file_encoding = "utf-8"
+            extra = "ignore"
 
         @property
         def cors_origin_list(self) -> list[str]:
@@ -21,7 +22,7 @@ except ImportError:  # pragma: no cover
 else:
 
     class Settings(BaseSettings):
-        model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+        model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
         database_url: str = ""
         secret_key: str = ""

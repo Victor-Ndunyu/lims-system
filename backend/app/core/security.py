@@ -21,7 +21,10 @@ def verify_password(password: str, password_hash: str) -> bool:
     """Verify password using bcrypt directly (avoids passlib compatibility issues)."""
     password_bytes = password.encode('utf-8')
     hash_bytes = password_hash.encode('utf-8')
-    return bcrypt.checkpw(password_bytes, hash_bytes)
+    try:
+        return bcrypt.checkpw(password_bytes, hash_bytes)
+    except ValueError:
+        return False
 
 
 def create_session_token() -> str:
