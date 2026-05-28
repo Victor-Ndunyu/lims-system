@@ -100,6 +100,7 @@ export const API_ENDPOINTS = {
   STAFF_UPLOAD: "/api/staff/upload",
   STAFF_LOCATIONS: "/api/staff/locations",
   STAFF_GEOCODE: "/api/staff/geocode",
+  STAFF_SAMPLE_TYPES: "/api/staff/sample-types",
 
   // Public operations
   PUBLIC_SAMPLES: "/api/public/samples",

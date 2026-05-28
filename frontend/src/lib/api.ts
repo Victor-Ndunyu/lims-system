@@ -212,3 +212,7 @@ export async function createLocation(payload: {
 export async function reverseGeocode(lat: number, lng: number) {
   return request(`${API_ENDPOINTS.STAFF_GEOCODE}?lat=${lat}&lng=${lng}`);
 }
+
+export async function createSampleType(name: string) {
+  return request(`${API_ENDPOINTS.STAFF_SAMPLE_TYPES}?name=${encodeURIComponent(name)}`, { method: "POST" });
+}

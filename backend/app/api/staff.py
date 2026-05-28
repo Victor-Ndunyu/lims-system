@@ -321,7 +321,7 @@ def reverse_geocode(lat: float, lng: float):
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode())
     except Exception:
-        raise HTTPException(status_code=502, detail="Geocoding service unavailable")
+        return {"display_name": "", "country": "", "county": "", "subcounty": "", "site_name": ""}
     address = data.get("address", {})
     return {
         "display_name": data.get("display_name", ""),
@@ -330,6 +330,18 @@ def reverse_geocode(lat: float, lng: float):
         "subcounty": address.get("suburb") or address.get("village") or address.get("town") or address.get("municipality", ""),
         "site_name": address.get("hamlet") or address.get("farm") or address.get("isolated_dwelling") or "",
     }
+
+
+@router.post("/sample-types", status_code=201, dependencies=[Depends(require_roles("field_officer", "analyst", "reviewer", "admin"))])
+def create_sample_type(name: str, description: Optional[str] = None, db: Session = Depends(get_db)):
+    existing = db.query(SampleType).filter(SampleType.name == name).first()
+    if existing:
+        return existing
+    st = SampleType(name=name, description=description)
+    db.add(st)
+    db.commit()
+    db.refresh(st)
+    return st
 
 
 @router.post("/upload", dependencies=[Depends(require_roles("field_officer", "analyst", "reviewer", "admin"))])

@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 
 import { AdminLayout, Alert, Button, EmptyState, StatusBadge } from "../../../components/ui";
 import { MapPicker } from "../../../components/map-picker";
-import { fetchSample, fetchStaffLookups, reviewSample, updateSample, uploadFile, createLocation, reverseGeocode } from "../../../lib/api";
+import { fetchSample, fetchStaffLookups, reviewSample, updateSample, uploadFile, createLocation, reverseGeocode, createSampleType } from "../../../lib/api";
 import { AttachmentInput, LookupItem, SampleFormData } from "../../../types/sample";
 
 function findNearbyLocation(locations: LookupItem[], lat: number, lng: number, threshold = 0.01): LookupItem | undefined {
@@ -41,12 +41,18 @@ export default function SampleDetails() {
   const [uploading, setUploading] = useState(false);
   const [mapLat, setMapLat] = useState<number | null>(null);
   const [mapLng, setMapLng] = useState<number | null>(null);
+  const [manualLat, setManualLat] = useState("");
+  const [manualLng, setManualLng] = useState("");
   const [pickedLocation, setPickedLocation] = useState<{ country: string; county: string; subcounty: string; site_name: string } | null>(null);
   const [savingLocation, setSavingLocation] = useState(false);
+  const [geocodeError, setGeocodeError] = useState(false);
+  const [customSampleType, setCustomSampleType] = useState("");
   const [reviewDecision, setReviewDecision] = useState<string>("Approved");
   const [reviewComments, setReviewComments] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const geocodeTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const isOtherType = form.sample_type_id === "other";
 
   const isEditable = form.status === "Draft" || form.status === "Submitted" || form.status === "Correction Requested";
   const canReview = form.status === "Submitted" || form.status === "Correction Requested";
@@ -117,44 +123,59 @@ export default function SampleDetails() {
     window.open(url, "_blank", "noopener");
   };
 
-  const handleMapClick = useCallback(async (lat: number, lng: number) => {
-    setMapLat(lat);
-    setMapLng(lng);
-
+  const doGeocode = useCallback(async (lat: number, lng: number) => {
     const existing = findNearbyLocation(lookups.locations, lat, lng);
     if (existing) {
       setForm((current) => ({ ...current, location_id: existing.id }));
       setPickedLocation({ country: existing.country || "", county: existing.county || "", subcounty: existing.subcounty || "", site_name: existing.site_name || "" });
+      setGeocodeError(false);
       return;
     }
 
-    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
-    geocodeTimer.current = setTimeout(async () => {
-      try {
-        const result = await reverseGeocode(lat, lng);
-        setPickedLocation({
-          country: result.country || "",
-          county: result.county || "",
-          subcounty: result.subcounty || "",
-          site_name: result.site_name || "",
-        });
-      } catch {
-        setPickedLocation({ country: "", county: "", subcounty: "", site_name: "" });
-      }
-    }, 400);
+    try {
+      const result = await reverseGeocode(lat, lng);
+      setPickedLocation({
+        country: result.country || "",
+        county: result.county || "",
+        subcounty: result.subcounty || "",
+        site_name: result.site_name || "",
+      });
+      setGeocodeError(!result.country && !result.county);
+    } catch {
+      setGeocodeError(true);
+      setPickedLocation(null);
+    }
   }, [lookups.locations]);
 
+  const applyManualCoords = () => {
+    const lat = parseFloat(manualLat);
+    const lng = parseFloat(manualLng);
+    if (isNaN(lat) || isNaN(lng)) { setError("Enter valid latitude and longitude"); return; }
+    setMapLat(lat);
+    setMapLng(lng);
+    setError(null);
+    doGeocode(lat, lng);
+  };
+
+  const handleMapClick = useCallback(async (lat: number, lng: number) => {
+    setMapLat(lat);
+    setMapLng(lng);
+    setManualLat(String(lat));
+    setManualLng(String(lng));
+    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
+    geocodeTimer.current = setTimeout(() => doGeocode(lat, lng), 400);
+  }, [doGeocode]);
+
   const handleSaveLocation = async () => {
-    if (!pickedLocation || !pickedLocation.country) { setError("Could not determine country from map selection"); return; }
     if (mapLat == null || mapLng == null) return;
     setSavingLocation(true);
     setError(null);
     try {
       const loc = await createLocation({
-        country: pickedLocation.country,
-        county: pickedLocation.county || undefined,
-        subcounty: pickedLocation.subcounty || undefined,
-        site_name: pickedLocation.site_name || undefined,
+        country: pickedLocation?.country || manualLat,
+        county: pickedLocation?.county || undefined,
+        subcounty: pickedLocation?.subcounty || undefined,
+        site_name: pickedLocation?.site_name || undefined,
         latitude: mapLat,
         longitude: mapLng,
       });
@@ -173,11 +194,15 @@ export default function SampleDetails() {
     setMapLat(null);
     setMapLng(null);
     setPickedLocation(null);
+    setManualLat("");
+    setManualLng("");
+    setGeocodeError(false);
   };
 
   const validate = () => {
     if (!form.sample_code.trim()) return "Sample code is required.";
     if (!form.sample_type_id) return "Sample type is required.";
+    if (isOtherType && !customSampleType.trim()) return "Enter a custom sample type name.";
     if (!form.collection_date) return "Collection date is required.";
     if (!form.collector_id) return "Collector is required.";
     if (!form.location_id) return "Location is required.";
@@ -197,8 +222,20 @@ export default function SampleDetails() {
       return;
     }
 
+    let sampleTypeId = form.sample_type_id;
+    if (isOtherType && customSampleType.trim()) {
+      try {
+        const newType = await createSampleType(customSampleType.trim());
+        sampleTypeId = newType.id;
+        setLookups((prev) => ({ ...prev, sample_types: [...prev.sample_types, newType] }));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to create sample type");
+        return;
+      }
+    }
+
     try {
-      await updateSample(id as string, form);
+      await updateSample(id as string, { ...form, sample_type_id: sampleTypeId });
       setSuccess("Sample updated successfully.");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Sample could not be updated.");
@@ -266,14 +303,29 @@ export default function SampleDetails() {
             </div>
             <div className="field">
               <label htmlFor="sample_type">Sample type *</label>
-              <select id="sample_type" value={form.sample_type_id} disabled={!isEditable} onChange={(event) => handleChange("sample_type_id", event.target.value)}>
-                <option value="">Select type</option>
-                {lookups.sample_types.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
+              {isEditable ? (
+                <>
+                  <select id="sample_type" value={form.sample_type_id} onChange={(event) => handleChange("sample_type_id", event.target.value)}>
+                    <option value="">Select type</option>
+                    {lookups.sample_types.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                    <option value="other">Other (type custom name)</option>
+                  </select>
+                  {isOtherType && (
+                    <input
+                      style={{ marginTop: "var(--space-2)" }}
+                      placeholder="Enter sample type name"
+                      value={customSampleType}
+                      onChange={(e) => setCustomSampleType(e.target.value)}
+                    />
+                  )}
+                </>
+              ) : (
+                <div className="readonly-field">{form.sample_type_id}</div>
+              )}
             </div>
             <div className="field">
               <label htmlFor="collection_date">Collection date *</label>
@@ -302,30 +354,38 @@ export default function SampleDetails() {
                   </div>
                   {isEditable && <Button tone="ghost" type="button" onClick={handleClearLocation}>Change</Button>}
                 </div>
-              ) : (
-                <p className="muted" style={{ marginBottom: "var(--space-3)" }}>Click on the map to set the collection location.</p>
-              )}
-              {isEditable && (
+              ) : null}
+              {isEditable && !selectedLocation && (
                 <>
-                  <MapPicker
-                    latitude={mapLat}
-                    longitude={mapLng}
-                    onChange={handleMapClick}
-                  />
-                  {pickedLocation && !selectedLocation && (
-                    <div className="picked-location-card">
-                      <div className="picked-location-details">
-                        <div className="field"><label>Country</label><span>{pickedLocation.country || "—"}</span></div>
-                        <div className="field"><label>County</label><span>{pickedLocation.county || "—"}</span></div>
-                        <div className="field"><label>Subcounty / Area</label><span>{pickedLocation.subcounty || "—"}</span></div>
-                        <div className="field"><label>Site</label><span>{pickedLocation.site_name || "—"}</span></div>
-                      </div>
-                      <Button type="button" onClick={handleSaveLocation} disabled={savingLocation}>
-                        {savingLocation ? "Saving…" : "Use this location"}
-                      </Button>
-                    </div>
-                  )}
+                  <p className="muted" style={{ marginBottom: "var(--space-3)" }}>Enter coordinates manually or click on the map.</p>
+                  <div className="coord-inputs">
+                    <input type="number" step="any" placeholder="Latitude" value={manualLat} onChange={(e) => setManualLat(e.target.value)} />
+                    <input type="number" step="any" placeholder="Longitude" value={manualLng} onChange={(e) => setManualLng(e.target.value)} />
+                    <Button tone="secondary" type="button" onClick={applyManualCoords}>Apply</Button>
+                  </div>
+                  <div style={{ height: 8 }} />
                 </>
+              )}
+              {isEditable && !selectedLocation && (
+                <MapPicker
+                  latitude={mapLat}
+                  longitude={mapLng}
+                  onChange={handleMapClick}
+                />
+              )}
+              {pickedLocation && !selectedLocation && (
+                <div className="picked-location-card">
+                  <div className="picked-location-details">
+                    <div className="field"><label>Country</label><span>{pickedLocation.country || "—"}</span></div>
+                    <div className="field"><label>County</label><span>{pickedLocation.county || "—"}</span></div>
+                    <div className="field"><label>Subcounty / Area</label><span>{pickedLocation.subcounty || "—"}</span></div>
+                    <div className="field"><label>Site</label><span>{pickedLocation.site_name || "—"}</span></div>
+                  </div>
+                  {geocodeError && <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "var(--space-3)" }}>Geocoding unavailable — you can still save this location.</p>}
+                  <Button type="button" onClick={handleSaveLocation} disabled={savingLocation}>
+                    {savingLocation ? "Saving…" : "Use this location"}
+                  </Button>
+                </div>
               )}
               {!isEditable && selectedLocation && selectedLocation.latitude != null && selectedLocation.longitude != null && (
                 <iframe

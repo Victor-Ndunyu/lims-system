@@ -57,16 +57,7 @@ export function MapPicker({
 
     map.on("click", (e: any) => {
       const { lat, lng } = e.latlng;
-      if (markerRef.current) {
-        markerRef.current.setLatLng([lat, lng]);
-      } else {
-        const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-        marker.on("dragend", () => {
-          const pos = marker.getLatLng();
-          onChange(pos.lat, pos.lng);
-        });
-        markerRef.current = marker;
-      }
+      placeMarker(lat, lng);
       onChange(lat, lng);
     });
 
@@ -76,6 +67,40 @@ export function MapPicker({
       markerRef.current = null;
     };
   }, [ready]);
+
+  function placeMarker(lat: number, lng: number) {
+    const L = (window as any).L;
+    const map = mapInstance.current;
+    if (!map) return;
+    if (markerRef.current) {
+      markerRef.current.setLatLng([lat, lng]);
+    } else {
+      const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        onChange(pos.lat, pos.lng);
+      });
+      markerRef.current = marker;
+    }
+  }
+
+  useEffect(() => {
+    if (!mapInstance.current || !latitude || !longitude) return;
+    const map = mapInstance.current;
+    const L = (window as any).L;
+
+    if (markerRef.current) {
+      markerRef.current.setLatLng([latitude, longitude]);
+    } else {
+      const marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        onChange(pos.lat, pos.lng);
+      });
+      markerRef.current = marker;
+    }
+    map.setView([latitude, longitude], map.getZoom());
+  }, [latitude, longitude]);
 
   return <div ref={mapRef} className="map-picker" />;
 }
