@@ -1005,6 +1005,61 @@ textarea:focus-visible {
   height: 320px;
   overflow: hidden;
   width: 100%;
+  z-index: 1;
+}
+
+.selected-location-banner {
+  align-items: center;
+  background: rgba(15, 118, 110, 0.06);
+  border: 1px solid var(--color-teal-600);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.selected-location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.selected-location-info strong {
+  color: var(--color-forest-900);
+  font-size: 0.92rem;
+}
+
+.selected-location-info span {
+  font-size: 0.8rem;
+}
+
+.picked-location-card {
+  background: var(--color-soft);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+}
+
+.picked-location-details {
+  display: grid;
+  gap: var(--space-2) var(--space-4);
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: var(--space-3);
+}
+
+.picked-location-details .field {
+  gap: 2px;
+}
+
+.picked-location-details .field label {
+  font-size: 0.7rem;
+}
+
+.picked-location-details .field span {
+  font-size: 0.88rem;
 }
 
 .coord-inputs {

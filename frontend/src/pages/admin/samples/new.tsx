@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { AdminLayout, Alert, Button, StatusBadge } from "../../../components/ui";
 import { MapPicker } from "../../../components/map-picker";
-import { createSample, fetchStaffLookups, uploadFile, createLocation } from "../../../lib/api";
+import { createSample, fetchStaffLookups, uploadFile, createLocation, reverseGeocode } from "../../../lib/api";
 import { AttachmentInput, LookupItem, SampleFormData } from "../../../types/sample";
 
 const initialState: SampleFormData = {
@@ -19,6 +19,13 @@ const initialState: SampleFormData = {
   attachments: [],
 };
 
+function findNearbyLocation(locations: LookupItem[], lat: number, lng: number, threshold = 0.01): LookupItem | undefined {
+  return locations.find((loc) => {
+    if (loc.latitude == null || loc.longitude == null) return false;
+    return Math.abs(loc.latitude - lat) < threshold && Math.abs(loc.longitude - lng) < threshold;
+  });
+}
+
 export default function NewSampleEntry() {
   const [form, setForm] = useState<SampleFormData>(initialState);
   const [lookups, setLookups] = useState<{ sample_types: LookupItem[]; locations: LookupItem[]; collectors: LookupItem[] }>({
@@ -29,11 +36,12 @@ export default function NewSampleEntry() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [showNewLocation, setShowNewLocation] = useState(false);
-  const [newLocation, setNewLocation] = useState({ country: "", county: "", subcounty: "", site_name: "", latitude: "", longitude: "" });
   const [mapLat, setMapLat] = useState<number | null>(null);
   const [mapLng, setMapLng] = useState<number | null>(null);
+  const [pickedLocation, setPickedLocation] = useState<{ country: string; county: string; subcounty: string; site_name: string } | null>(null);
+  const [savingLocation, setSavingLocation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const geocodeTimer = useRef<ReturnType<typeof setTimeout>>();
   const router = useRouter();
 
   useEffect(() => {
@@ -79,6 +87,64 @@ export default function NewSampleEntry() {
     window.open(url, "_blank", "noopener");
   };
 
+  const handleMapClick = useCallback(async (lat: number, lng: number) => {
+    setMapLat(lat);
+    setMapLng(lng);
+
+    const existing = findNearbyLocation(lookups.locations, lat, lng);
+    if (existing) {
+      setForm((current) => ({ ...current, location_id: existing.id }));
+      setPickedLocation({ country: existing.country || "", county: existing.county || "", subcounty: existing.subcounty || "", site_name: existing.site_name || "" });
+      return;
+    }
+
+    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
+    geocodeTimer.current = setTimeout(async () => {
+      try {
+        const result = await reverseGeocode(lat, lng);
+        setPickedLocation({
+          country: result.country || "",
+          county: result.county || "",
+          subcounty: result.subcounty || "",
+          site_name: result.site_name || "",
+        });
+      } catch {
+        setPickedLocation({ country: "", county: "", subcounty: "", site_name: "" });
+      }
+    }, 400);
+  }, [lookups.locations]);
+
+  const handleSaveLocation = async () => {
+    if (!pickedLocation || !pickedLocation.country) { setError("Could not determine country from map selection"); return; }
+    if (mapLat == null || mapLng == null) return;
+    setSavingLocation(true);
+    setError(null);
+    try {
+      const loc = await createLocation({
+        country: pickedLocation.country,
+        county: pickedLocation.county || undefined,
+        subcounty: pickedLocation.subcounty || undefined,
+        site_name: pickedLocation.site_name || undefined,
+        latitude: mapLat,
+        longitude: mapLng,
+      });
+      setLookups((prev) => ({ ...prev, locations: [...prev.locations, loc] }));
+      setForm((current) => ({ ...current, location_id: loc.id }));
+      setPickedLocation(null);
+      setSuccess("Location saved");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save location");
+    }
+    setSavingLocation(false);
+  };
+
+  const handleClearLocation = () => {
+    setForm((current) => ({ ...current, location_id: "" }));
+    setMapLat(null);
+    setMapLng(null);
+    setPickedLocation(null);
+  };
+
   const validate = () => {
     if (!form.sample_code.trim()) return "Sample code is required.";
     if (!form.sample_type_id) return "Sample type is required.";
@@ -103,32 +169,6 @@ export default function NewSampleEntry() {
       router.push("/admin/samples");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Sample could not be saved.");
-    }
-  };
-
-  const handleCreateLocation = async () => {
-    if (!newLocation.country.trim()) { setError("Country is required"); return; }
-    try {
-      setError(null);
-      const lat = newLocation.latitude ? parseFloat(newLocation.latitude) : mapLat ?? undefined;
-      const lng = newLocation.longitude ? parseFloat(newLocation.longitude) : mapLng ?? undefined;
-      const loc = await createLocation({
-        country: newLocation.country,
-        county: newLocation.county || undefined,
-        subcounty: newLocation.subcounty || undefined,
-        site_name: newLocation.site_name || undefined,
-        latitude: lat,
-        longitude: lng,
-      });
-      setLookups((prev) => ({ ...prev, locations: [...prev.locations, loc] }));
-      setForm((current) => ({ ...current, location_id: loc.id }));
-      setShowNewLocation(false);
-      setNewLocation({ country: "", county: "", subcounty: "", site_name: "", latitude: "", longitude: "" });
-      setMapLat(null);
-      setMapLng(null);
-      setSuccess("Location created");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create location");
     }
   };
 
@@ -195,30 +235,37 @@ export default function NewSampleEntry() {
               ))}
             </select>
           </div>
-          <div className="field">
-            <label htmlFor="location">Location *</label>
-            <div className="location-select-row">
-              <select id="location" value={form.location_id} onChange={(event) => handleChange("location_id", event.target.value)}>
-                <option value="">Select location</option>
-                {lookups.locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.site_name || `${location.country} / ${location.county || location.subcounty || ""}`}
-                  </option>
-                ))}
-              </select>
-              <Button tone="ghost" type="button" onClick={() => setShowNewLocation(true)}>+ New</Button>
-            </div>
-            {selectedLocation && (selectedLocation.latitude || selectedLocation.longitude) && (
-              <div className="location-coords">
-                <span>{selectedLocation.latitude?.toFixed(4)}, {selectedLocation.longitude?.toFixed(4)}</span>
-                {selectedLocation.latitude && selectedLocation.longitude && (
-                  <iframe
-                    title="Location map"
-                    className="map-thumb"
-                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedLocation.longitude - 0.02},${selectedLocation.latitude - 0.02},${selectedLocation.longitude + 0.02},${selectedLocation.latitude + 0.02}&amp;layer=mapnik&amp;marker=${selectedLocation.latitude},${selectedLocation.longitude}`}
-                    loading="lazy"
-                  />
-                )}
+          <div className="field field-full">
+            <label>Location *</label>
+            {selectedLocation ? (
+              <div className="selected-location-banner">
+                <div className="selected-location-info">
+                  <strong>{selectedLocation.site_name || `${selectedLocation.country} / ${selectedLocation.county || selectedLocation.subcounty || ""}`}</strong>
+                  {selectedLocation.latitude != null && selectedLocation.longitude != null && (
+                    <span className="muted">{selectedLocation.latitude.toFixed(4)}, {selectedLocation.longitude.toFixed(4)}</span>
+                  )}
+                </div>
+                <Button tone="ghost" type="button" onClick={handleClearLocation}>Change</Button>
+              </div>
+            ) : (
+              <p className="muted" style={{ marginBottom: "var(--space-3)" }}>Click on the map to set the collection location.</p>
+            )}
+            <MapPicker
+              latitude={mapLat}
+              longitude={mapLng}
+              onChange={handleMapClick}
+            />
+            {pickedLocation && !selectedLocation && (
+              <div className="picked-location-card">
+                <div className="picked-location-details">
+                  <div className="field"><label>Country</label><span>{pickedLocation.country || "—"}</span></div>
+                  <div className="field"><label>County</label><span>{pickedLocation.county || "—"}</span></div>
+                  <div className="field"><label>Subcounty / Area</label><span>{pickedLocation.subcounty || "—"}</span></div>
+                  <div className="field"><label>Site</label><span>{pickedLocation.site_name || "—"}</span></div>
+                </div>
+                <Button type="button" onClick={handleSaveLocation} disabled={savingLocation}>
+                  {savingLocation ? "Saving…" : "Use this location"}
+                </Button>
               </div>
             )}
           </div>
@@ -231,57 +278,6 @@ export default function NewSampleEntry() {
             <textarea id="remarks" value={form.remarks} onChange={(event) => handleChange("remarks", event.target.value)} />
           </div>
         </div>
-
-        {showNewLocation && (
-          <section className="section form-card add-location-form">
-            <div className="section-header">
-              <div>
-                <p className="eyebrow">New location</p>
-                <h3>Collection site</h3>
-              </div>
-              <Button tone="ghost" type="button" onClick={() => setShowNewLocation(false)}>Cancel</Button>
-            </div>
-            <div className="form-grid">
-              <div className="field">
-                <label>Country *</label>
-                <input value={newLocation.country} onChange={(e) => setNewLocation((prev) => ({ ...prev, country: e.target.value }))} />
-              </div>
-              <div className="field">
-                <label>County / Region</label>
-                <input value={newLocation.county} onChange={(e) => setNewLocation((prev) => ({ ...prev, county: e.target.value }))} />
-              </div>
-              <div className="field">
-                <label>Subcounty</label>
-                <input value={newLocation.subcounty} onChange={(e) => setNewLocation((prev) => ({ ...prev, subcounty: e.target.value }))} />
-              </div>
-              <div className="field">
-                <label>Site name</label>
-                <input value={newLocation.site_name} onChange={(e) => setNewLocation((prev) => ({ ...prev, site_name: e.target.value }))} />
-              </div>
-              <div className="field field-full">
-                <label>Coordinates (click on map or enter manually)</label>
-                <div className="coord-inputs">
-                  <input type="number" step="any" placeholder="Latitude" value={newLocation.latitude} onChange={(e) => setNewLocation((prev) => ({ ...prev, latitude: e.target.value }))} />
-                  <input type="number" step="any" placeholder="Longitude" value={newLocation.longitude} onChange={(e) => setNewLocation((prev) => ({ ...prev, longitude: e.target.value }))} />
-                </div>
-              </div>
-              <div className="field field-full">
-                <MapPicker
-                  latitude={mapLat}
-                  longitude={mapLng}
-                  onChange={(lat, lng) => {
-                    setMapLat(lat);
-                    setMapLng(lng);
-                    setNewLocation((prev) => ({ ...prev, latitude: String(lat), longitude: String(lng) }));
-                  }}
-                />
-              </div>
-            </div>
-            <div className="action-row" style={{ marginTop: 16 }}>
-              <Button type="button" onClick={handleCreateLocation}>Save location</Button>
-            </div>
-          </section>
-        )}
 
         <section className="section">
           <div className="section-header">

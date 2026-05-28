@@ -1,4 +1,6 @@
+import json
 import os
+import urllib.request
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -309,6 +311,25 @@ def create_location(loc_in: LocationCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(location)
     return location
+
+
+@router.get("/geocode", dependencies=[Depends(require_roles("field_officer", "analyst", "reviewer", "admin"))])
+def reverse_geocode(lat: float, lng: float):
+    url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lng}&format=json&addressdetails=1"
+    req = urllib.request.Request(url, headers={"User-Agent": "FieldSampleManagement/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+    except Exception:
+        raise HTTPException(status_code=502, detail="Geocoding service unavailable")
+    address = data.get("address", {})
+    return {
+        "display_name": data.get("display_name", ""),
+        "country": address.get("country", ""),
+        "county": address.get("county") or address.get("state_district") or address.get("region", ""),
+        "subcounty": address.get("suburb") or address.get("village") or address.get("town") or address.get("municipality", ""),
+        "site_name": address.get("hamlet") or address.get("farm") or address.get("isolated_dwelling") or "",
+    }
 
 
 @router.post("/upload", dependencies=[Depends(require_roles("field_officer", "analyst", "reviewer", "admin"))])

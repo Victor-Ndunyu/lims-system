@@ -208,3 +208,7 @@ export async function createLocation(payload: {
 }) {
   return request(API_ENDPOINTS.STAFF_LOCATIONS, { method: "POST", body: JSON.stringify(payload) });
 }
+
+export async function reverseGeocode(lat: number, lng: number) {
+  return request(`${API_ENDPOINTS.STAFF_GEOCODE}?lat=${lat}&lng=${lng}`);
+}
