@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { AdminLayout, Alert, Button, StatusBadge } from "../../../components/ui";
+import { MapPicker } from "../../../components/map-picker";
 import { createSample, fetchStaffLookups, uploadFile, createLocation } from "../../../lib/api";
 import { AttachmentInput, LookupItem, SampleFormData } from "../../../types/sample";
 
@@ -30,6 +31,8 @@ export default function NewSampleEntry() {
   const [uploading, setUploading] = useState(false);
   const [showNewLocation, setShowNewLocation] = useState(false);
   const [newLocation, setNewLocation] = useState({ country: "", county: "", subcounty: "", site_name: "", latitude: "", longitude: "" });
+  const [mapLat, setMapLat] = useState<number | null>(null);
+  const [mapLng, setMapLng] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -107,18 +110,22 @@ export default function NewSampleEntry() {
     if (!newLocation.country.trim()) { setError("Country is required"); return; }
     try {
       setError(null);
+      const lat = newLocation.latitude ? parseFloat(newLocation.latitude) : mapLat ?? undefined;
+      const lng = newLocation.longitude ? parseFloat(newLocation.longitude) : mapLng ?? undefined;
       const loc = await createLocation({
         country: newLocation.country,
         county: newLocation.county || undefined,
         subcounty: newLocation.subcounty || undefined,
         site_name: newLocation.site_name || undefined,
-        latitude: newLocation.latitude ? parseFloat(newLocation.latitude) : undefined,
-        longitude: newLocation.longitude ? parseFloat(newLocation.longitude) : undefined,
+        latitude: lat,
+        longitude: lng,
       });
       setLookups((prev) => ({ ...prev, locations: [...prev.locations, loc] }));
       setForm((current) => ({ ...current, location_id: loc.id }));
       setShowNewLocation(false);
       setNewLocation({ country: "", county: "", subcounty: "", site_name: "", latitude: "", longitude: "" });
+      setMapLat(null);
+      setMapLng(null);
       setSuccess("Location created");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create location");
@@ -251,13 +258,23 @@ export default function NewSampleEntry() {
                 <label>Site name</label>
                 <input value={newLocation.site_name} onChange={(e) => setNewLocation((prev) => ({ ...prev, site_name: e.target.value }))} />
               </div>
-              <div className="field">
-                <label>Latitude</label>
-                <input type="number" step="any" value={newLocation.latitude} onChange={(e) => setNewLocation((prev) => ({ ...prev, latitude: e.target.value }))} />
+              <div className="field field-full">
+                <label>Coordinates (click on map or enter manually)</label>
+                <div className="coord-inputs">
+                  <input type="number" step="any" placeholder="Latitude" value={newLocation.latitude} onChange={(e) => setNewLocation((prev) => ({ ...prev, latitude: e.target.value }))} />
+                  <input type="number" step="any" placeholder="Longitude" value={newLocation.longitude} onChange={(e) => setNewLocation((prev) => ({ ...prev, longitude: e.target.value }))} />
+                </div>
               </div>
-              <div className="field">
-                <label>Longitude</label>
-                <input type="number" step="any" value={newLocation.longitude} onChange={(e) => setNewLocation((prev) => ({ ...prev, longitude: e.target.value }))} />
+              <div className="field field-full">
+                <MapPicker
+                  latitude={mapLat}
+                  longitude={mapLng}
+                  onChange={(lat, lng) => {
+                    setMapLat(lat);
+                    setMapLng(lng);
+                    setNewLocation((prev) => ({ ...prev, latitude: String(lat), longitude: String(lng) }));
+                  }}
+                />
               </div>
             </div>
             <div className="action-row" style={{ marginTop: 16 }}>

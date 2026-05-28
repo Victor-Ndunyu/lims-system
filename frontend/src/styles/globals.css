@@ -999,6 +999,30 @@ textarea:focus-visible {
   padding: 6px 10px;
 }
 
+.map-picker {
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  height: 320px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.coord-inputs {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr 1fr;
+}
+
+.coord-inputs input {
+  background: #fbfdfc;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  min-height: 44px;
+  padding: 11px 12px;
+  width: 100%;
+}
+
 @media (max-width: 960px) {
   .hero,
   .admin-layout,
