@@ -99,4 +99,5 @@ export const API_ENDPOINTS = {
 
   // Public operations
   PUBLIC_SAMPLES: "/api/public/samples",
+  PUBLIC_STATS: "/api/public/stats",
 } as const;

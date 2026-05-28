@@ -1,6 +1,16 @@
+import { useEffect, useState } from "react";
 import { ButtonLink, PageShell, StatCard, StatusBadge } from "../components/ui";
+import { fetchPublicStats, type PublicStats } from "../lib/api";
 
 export default function Home() {
+  const [stats, setStats] = useState<PublicStats | null>(null);
+
+  useEffect(() => {
+    fetchPublicStats()
+      .then(setStats)
+      .catch(() => {});
+  }, []);
+
   return (
     <PageShell wide>
       <section className="hero">
@@ -24,8 +34,8 @@ export default function Home() {
             <h3>Sample integrity monitor</h3>
             <div className="wave-line" />
             <div className="grid grid-2">
-              <StatCard label="Verified records" value="128" note="Approved for release" />
-              <StatCard label="Coverage" value="14" note="Field collection zones" />
+              <StatCard label="Verified records" value={stats ? String(stats.published_records) : "—"} note="Approved for release" />
+              <StatCard label="Coverage" value={stats ? String(stats.total_locations) : "—"} note="Field collection zones" />
             </div>
           </div>
         </div>
@@ -33,10 +43,10 @@ export default function Home() {
 
       <section className="section">
         <div className="kpi-strip">
-          <StatCard label="Sample records" value="1,248" note="Tracked across field teams" />
-          <StatCard label="Locations" value="42" note="Active surveillance sites" />
-          <StatCard label="Review queue" value="18" note="Awaiting scientific validation" />
-          <StatCard label="Published" value="312" note="Read-only public records" />
+          <StatCard label="Sample records" value={stats ? String(stats.total_samples) : "—"} note="Tracked across field teams" />
+          <StatCard label="Locations" value={stats ? String(stats.total_locations) : "—"} note="Active surveillance sites" />
+          <StatCard label="Review queue" value={stats ? String(stats.pending_approvals) : "—"} note="Awaiting scientific validation" />
+          <StatCard label="Published" value={stats ? String(stats.published_records) : "—"} note="Read-only public records" />
         </div>
       </section>
 

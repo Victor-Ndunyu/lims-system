@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.core.deps import get_db
 from app.models.sample import Sample
+from app.models.location import Location
 from app.schemas.sample import SampleRead
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -26,3 +28,17 @@ def get_public_sample(sample_id: str, db: Session = Depends(get_db)):
     if not sample:
         raise HTTPException(status_code=404, detail="Public sample not found")
     return sample
+
+
+@router.get("/stats")
+def public_stats(db: Session = Depends(get_db)):
+    total_samples = db.query(func.count(Sample.id)).scalar() or 0
+    published_records = db.query(func.count(Sample.id)).filter(Sample.public_visibility.is_(True)).scalar() or 0
+    pending_approvals = db.query(func.count(Sample.id)).filter(Sample.status == "Submitted").scalar() or 0
+    total_locations = db.query(func.count(Location.id)).scalar() or 0
+    return {
+        "total_samples": total_samples,
+        "published_records": published_records,
+        "pending_approvals": pending_approvals,
+        "total_locations": total_locations,
+    }

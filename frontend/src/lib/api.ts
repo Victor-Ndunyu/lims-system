@@ -158,3 +158,14 @@ export async function fetchSample(sampleId: string) {
 export async function fetchPublicSamples() {
   return publicRequest(API_ENDPOINTS.PUBLIC_SAMPLES);
 }
+
+export type PublicStats = {
+  total_samples: number;
+  published_records: number;
+  pending_approvals: number;
+  total_locations: number;
+};
+
+export async function fetchPublicStats(): Promise<PublicStats> {
+  return publicRequest(API_ENDPOINTS.PUBLIC_STATS);
+}
