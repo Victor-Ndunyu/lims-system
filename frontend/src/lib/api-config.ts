@@ -97,6 +97,8 @@ export const API_ENDPOINTS = {
   STAFF_SAMPLE_BY_ID: (id: string) => `/api/staff/samples/${id}`,
   STAFF_SAMPLE_REVIEW: (id: string) => `/api/staff/samples/${id}/review`,
   STAFF_LOOKUPS: "/api/staff/lookups",
+  STAFF_UPLOAD: "/api/staff/upload",
+  STAFF_LOCATIONS: "/api/staff/locations",
 
   // Public operations
   PUBLIC_SAMPLES: "/api/public/samples",

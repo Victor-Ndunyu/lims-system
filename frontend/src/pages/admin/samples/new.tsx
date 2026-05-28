@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { AdminLayout, Alert, Button, StatusBadge } from "../../../components/ui";
-import { createSample, fetchStaffLookups } from "../../../lib/api";
+import { createSample, fetchStaffLookups, uploadFile, createLocation } from "../../../lib/api";
 import { AttachmentInput, LookupItem, SampleFormData } from "../../../types/sample";
 
 const initialState: SampleFormData = {
@@ -27,6 +27,10 @@ export default function NewSampleEntry() {
   });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [showNewLocation, setShowNewLocation] = useState(false);
+  const [newLocation, setNewLocation] = useState({ country: "", county: "", subcounty: "", site_name: "", latitude: "", longitude: "" });
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -35,23 +39,30 @@ export default function NewSampleEntry() {
       .catch((err) => setError(err.message));
   }, []);
 
+  const selectedLocation = lookups.locations.find((loc) => loc.id === form.location_id);
+
   const handleChange = (field: keyof SampleFormData, value: string | AttachmentInput[]) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const handleAttachmentChange = (index: number, field: keyof AttachmentInput, value: string) => {
-    setForm((current) => {
-      const attachments = [...current.attachments];
-      attachments[index] = { ...attachments[index], [field]: value };
-      return { ...current, attachments };
-    });
-  };
-
-  const addAttachment = () => {
-    setForm((current) => ({
-      ...current,
-      attachments: [...current.attachments, { file_name: "", file_type: "", file_url: "" }],
-    }));
+  const handleFilePick = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setError(null);
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const result = await uploadFile(files[i]);
+        setForm((current) => ({
+          ...current,
+          attachments: [...current.attachments, result],
+        }));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    }
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeAttachment = (index: number) => {
@@ -59,6 +70,10 @@ export default function NewSampleEntry() {
       ...current,
       attachments: current.attachments.filter((_, i) => i !== index),
     }));
+  };
+
+  const openAttachment = (url: string) => {
+    window.open(url, "_blank", "noopener");
   };
 
   const validate = () => {
@@ -85,6 +100,28 @@ export default function NewSampleEntry() {
       router.push("/admin/samples");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Sample could not be saved.");
+    }
+  };
+
+  const handleCreateLocation = async () => {
+    if (!newLocation.country.trim()) { setError("Country is required"); return; }
+    try {
+      setError(null);
+      const loc = await createLocation({
+        country: newLocation.country,
+        county: newLocation.county || undefined,
+        subcounty: newLocation.subcounty || undefined,
+        site_name: newLocation.site_name || undefined,
+        latitude: newLocation.latitude ? parseFloat(newLocation.latitude) : undefined,
+        longitude: newLocation.longitude ? parseFloat(newLocation.longitude) : undefined,
+      });
+      setLookups((prev) => ({ ...prev, locations: [...prev.locations, loc] }));
+      setForm((current) => ({ ...current, location_id: loc.id }));
+      setShowNewLocation(false);
+      setNewLocation({ country: "", county: "", subcounty: "", site_name: "", latitude: "", longitude: "" });
+      setSuccess("Location created");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create location");
     }
   };
 
@@ -153,14 +190,30 @@ export default function NewSampleEntry() {
           </div>
           <div className="field">
             <label htmlFor="location">Location *</label>
-            <select id="location" value={form.location_id} onChange={(event) => handleChange("location_id", event.target.value)}>
-              <option value="">Select location</option>
-              {lookups.locations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.site_name || `${location.country} / ${location.county || ""}`}
-                </option>
-              ))}
-            </select>
+            <div className="location-select-row">
+              <select id="location" value={form.location_id} onChange={(event) => handleChange("location_id", event.target.value)}>
+                <option value="">Select location</option>
+                {lookups.locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.site_name || `${location.country} / ${location.county || location.subcounty || ""}`}
+                  </option>
+                ))}
+              </select>
+              <Button tone="ghost" type="button" onClick={() => setShowNewLocation(true)}>+ New</Button>
+            </div>
+            {selectedLocation && (selectedLocation.latitude || selectedLocation.longitude) && (
+              <div className="location-coords">
+                <span>{selectedLocation.latitude?.toFixed(4)}, {selectedLocation.longitude?.toFixed(4)}</span>
+                {selectedLocation.latitude && selectedLocation.longitude && (
+                  <iframe
+                    title="Location map"
+                    className="map-thumb"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedLocation.longitude - 0.02},${selectedLocation.latitude - 0.02},${selectedLocation.longitude + 0.02},${selectedLocation.latitude + 0.02}&amp;layer=mapnik&amp;marker=${selectedLocation.latitude},${selectedLocation.longitude}`}
+                    loading="lazy"
+                  />
+                )}
+              </div>
+            )}
           </div>
           <div className="field field-full">
             <label htmlFor="description">Description</label>
@@ -172,41 +225,86 @@ export default function NewSampleEntry() {
           </div>
         </div>
 
+        {showNewLocation && (
+          <section className="section form-card add-location-form">
+            <div className="section-header">
+              <div>
+                <p className="eyebrow">New location</p>
+                <h3>Collection site</h3>
+              </div>
+              <Button tone="ghost" type="button" onClick={() => setShowNewLocation(false)}>Cancel</Button>
+            </div>
+            <div className="form-grid">
+              <div className="field">
+                <label>Country *</label>
+                <input value={newLocation.country} onChange={(e) => setNewLocation((prev) => ({ ...prev, country: e.target.value }))} />
+              </div>
+              <div className="field">
+                <label>County / Region</label>
+                <input value={newLocation.county} onChange={(e) => setNewLocation((prev) => ({ ...prev, county: e.target.value }))} />
+              </div>
+              <div className="field">
+                <label>Subcounty</label>
+                <input value={newLocation.subcounty} onChange={(e) => setNewLocation((prev) => ({ ...prev, subcounty: e.target.value }))} />
+              </div>
+              <div className="field">
+                <label>Site name</label>
+                <input value={newLocation.site_name} onChange={(e) => setNewLocation((prev) => ({ ...prev, site_name: e.target.value }))} />
+              </div>
+              <div className="field">
+                <label>Latitude</label>
+                <input type="number" step="any" value={newLocation.latitude} onChange={(e) => setNewLocation((prev) => ({ ...prev, latitude: e.target.value }))} />
+              </div>
+              <div className="field">
+                <label>Longitude</label>
+                <input type="number" step="any" value={newLocation.longitude} onChange={(e) => setNewLocation((prev) => ({ ...prev, longitude: e.target.value }))} />
+              </div>
+            </div>
+            <div className="action-row" style={{ marginTop: 16 }}>
+              <Button type="button" onClick={handleCreateLocation}>Save location</Button>
+            </div>
+          </section>
+        )}
+
         <section className="section">
           <div className="section-header">
             <div>
               <p className="eyebrow">Evidence files</p>
               <h2>Attachments</h2>
             </div>
-            <Button tone="secondary" onClick={addAttachment}>
-              Add attachment
-            </Button>
+            <div className="action-row">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+                onChange={handleFilePick}
+                style={{ display: "none" }}
+              />
+              <Button tone="secondary" type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                {uploading ? "Uploading…" : "Upload files"}
+              </Button>
+            </div>
           </div>
-          <div className="record-list">
-            {form.attachments.map((attachment, index) => (
-              <div className="card" key={index}>
-                <div className="form-grid">
-                  <div className="field">
-                    <label>File name</label>
-                    <input value={attachment.file_name} onChange={(event) => handleAttachmentChange(index, "file_name", event.target.value)} />
+          {form.attachments.length > 0 ? (
+            <div className="attachment-grid">
+              {form.attachments.map((attachment, index) => (
+                <div className="attachment-card" key={index}>
+                  <div className="attachment-icon">{attachment.file_type?.startsWith("image/") ? "🖼" : "📄"}</div>
+                  <div className="attachment-info">
+                    <span className="attachment-name">{attachment.file_name}</span>
+                    <span className="attachment-type">{attachment.file_type}</span>
                   </div>
-                  <div className="field">
-                    <label>File type</label>
-                    <input value={attachment.file_type} onChange={(event) => handleAttachmentChange(index, "file_type", event.target.value)} />
-                  </div>
-                  <div className="field field-full">
-                    <label>File URL</label>
-                    <input value={attachment.file_url} onChange={(event) => handleAttachmentChange(index, "file_url", event.target.value)} />
+                  <div className="attachment-actions">
+                    <Button tone="ghost" type="button" onClick={() => openAttachment(attachment.file_url)}>View</Button>
+                    <Button tone="ghost" type="button" onClick={() => removeAttachment(index)}>Remove</Button>
                   </div>
                 </div>
-                <div style={{ marginTop: 16 }}>
-                  <Button tone="ghost" onClick={() => removeAttachment(index)}>
-                    Remove attachment
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="muted" style={{ padding: "var(--space-4) 0" }}>No files attached yet. Click &quot;Upload files&quot; to add photos, PDFs, or documents.</p>
+          )}
         </section>
 
         <div className="action-row" style={{ marginTop: 28 }}>

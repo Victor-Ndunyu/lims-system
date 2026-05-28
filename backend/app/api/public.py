@@ -36,9 +36,18 @@ def public_stats(db: Session = Depends(get_db)):
     published_records = db.query(func.count(Sample.id)).filter(Sample.public_visibility.is_(True)).scalar() or 0
     pending_approvals = db.query(func.count(Sample.id)).filter(Sample.status == "Submitted").scalar() or 0
     total_locations = db.query(func.count(Location.id)).scalar() or 0
+
+    records_by_status = (
+        db.query(Sample.status, func.count(Sample.id))
+        .group_by(Sample.status)
+        .all()
+    )
+    status_breakdown = [{"status": s, "count": c} for s, c in records_by_status]
+
     return {
         "total_samples": total_samples,
         "published_records": published_records,
         "pending_approvals": pending_approvals,
         "total_locations": total_locations,
+        "records_by_status": status_breakdown,
     }

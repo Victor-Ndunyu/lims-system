@@ -790,6 +790,49 @@ textarea:focus-visible {
   min-height: 260px;
 }
 
+.chart-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: var(--space-4) 0;
+  padding: var(--space-3) 0;
+}
+
+.chart-bar-item {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 6rem 1fr 2.4rem;
+}
+
+.chart-bar-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chart-bar-track {
+  background: rgba(15, 118, 110, 0.1);
+  border-radius: 999px;
+  height: 18px;
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  background: linear-gradient(90deg, var(--color-teal-600), var(--color-blue-600), var(--color-forest-800));
+  border-radius: 999px;
+  height: 100%;
+  transition: width 0.6s ease;
+}
+
+.chart-bar-value {
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-align: right;
+}
+
 .admin-table {
   width: 100%;
 }
@@ -858,6 +901,102 @@ textarea:focus-visible {
 
 .cell-status .badge:hover {
   opacity: 0.8;
+}
+
+.location-select-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.location-select-row select {
+  flex: 1;
+}
+
+.location-select-row .button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.location-coords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.location-coords span {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  width: 100%;
+}
+
+.map-thumb {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  height: 160px;
+  width: 100%;
+}
+
+.add-location-form {
+  background: var(--color-soft);
+}
+
+.attachment-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.attachment-card {
+  align-items: center;
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.attachment-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.attachment-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.attachment-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-type {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.attachment-actions .button {
+  font-size: 0.78rem;
+  min-height: auto;
+  padding: 6px 10px;
 }
 
 @media (max-width: 960px) {

@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from app.api import api_router
@@ -7,6 +9,9 @@ from app.core.config import settings
 from app.db.session import engine
 
 app = FastAPI(title="Field Sample Management API")
+
+os.makedirs(settings.upload_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 
 DEFAULT_CORS_ORIGINS = [
     "https://lims-system-neon.vercel.app",

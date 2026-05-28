@@ -38,4 +38,6 @@ export interface LookupItem {
   county?: string;
   subcounty?: string;
   site_name?: string;
+  latitude?: number;
+  longitude?: number;
 }

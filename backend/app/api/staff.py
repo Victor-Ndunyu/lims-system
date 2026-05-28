@@ -1,11 +1,15 @@
+import os
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, status
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from app.core.audit import log_audit, make_sample_snapshot, record_sample_version
-from app.core.deps import get_db, require_roles
+from app.core.config import settings
+from app.core.deps import get_db, require_roles, get_current_user
 from app.models.attachment import Attachment
 from app.models.location import Location
 from app.models.sample import Sample
@@ -14,6 +18,14 @@ from app.models.sample_type import SampleType
 from app.models.sample_version import SampleVersion
 from app.models.user import User
 from app.schemas.sample import SampleCreate, SampleRead, SampleReviewRequest, SampleVersionRead
+
+ALLOWED_UPLOAD_TYPES = {
+    "image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif", "image/webp": ".webp",
+    "application/pdf": ".pdf",
+    "application/msword": ".doc", "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+    "application/vnd.ms-excel": ".xls", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+    "text/csv": ".csv", "text/plain": ".txt",
+}
 
 router = APIRouter(prefix="/staff", tags=["staff"])
 LOCKED_SAMPLE_STATUSES = {"Approved", "Rejected", "Archived"}
@@ -269,4 +281,62 @@ def get_staff_lookups(db: Session = Depends(get_db)):
         "sample_types": sample_types,
         "locations": locations,
         "collectors": collectors,
+    }
+
+
+class LocationCreate(BaseModel):
+    country: str
+    county: Optional[str] = None
+    subcounty: Optional[str] = None
+    site_name: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    altitude: Optional[float] = None
+
+
+@router.post("/locations", status_code=201, dependencies=[Depends(require_roles("field_officer", "analyst", "reviewer", "admin"))])
+def create_location(loc_in: LocationCreate, db: Session = Depends(get_db)):
+    location = Location(
+        country=loc_in.country,
+        county=loc_in.county,
+        subcounty=loc_in.subcounty,
+        site_name=loc_in.site_name,
+        latitude=loc_in.latitude,
+        longitude=loc_in.longitude,
+        altitude=loc_in.altitude,
+    )
+    db.add(location)
+    db.commit()
+    db.refresh(location)
+    return location
+
+
+@router.post("/upload", dependencies=[Depends(require_roles("field_officer", "analyst", "reviewer", "admin"))])
+async def upload_file(file: UploadFile = File(...)):
+    ext = os.path.splitext(file.filename or "file")[1].lower() if "." in (file.filename or "") else ""
+    allowed_exts = set(ALLOWED_UPLOAD_TYPES.values())
+    if ext and ext not in allowed_exts:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"File type '{ext}' is not allowed")
+    if file.content_type and file.content_type not in ALLOWED_UPLOAD_TYPES:
+        if ext not in allowed_exts:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="File type not allowed")
+
+    upload_dir = settings.upload_dir
+    os.makedirs(upload_dir, exist_ok=True)
+
+    unique_name = f"{uuid.uuid4().hex}{ext or '.bin'}"
+    file_path = os.path.join(upload_dir, unique_name)
+
+    contents = await file.read()
+    max_bytes = settings.max_upload_size_mb * 1024 * 1024
+    if len(contents) > max_bytes:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"File exceeds {settings.max_upload_size_mb}MB limit")
+
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    return {
+        "file_name": file.filename or unique_name,
+        "file_type": file.content_type or "application/octet-stream",
+        "file_url": f"/uploads/{unique_name}",
     }

@@ -10,6 +10,8 @@ except ImportError:  # pragma: no cover
         environment: str = "development"
         access_token_expire_minutes: int = 60
         cors_origins: str = ""
+        upload_dir: str = "uploads"
+        max_upload_size_mb: int = 20
 
         class Config:
             env_file = ".env"
@@ -29,6 +31,8 @@ else:
         environment: str = "development"
         access_token_expire_minutes: int = 60
         cors_origins: str = ""
+        upload_dir: str = "uploads"
+        max_upload_size_mb: int = 20
 
         @property
         def cors_origin_list(self) -> list[str]:

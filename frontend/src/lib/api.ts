@@ -172,8 +172,39 @@ export type PublicStats = {
   published_records: number;
   pending_approvals: number;
   total_locations: number;
+  records_by_status: Array<{ status: string; count: number }>;
 };
 
 export async function fetchPublicStats(): Promise<PublicStats> {
   return publicRequest(API_ENDPOINTS.PUBLIC_STATS);
+}
+
+export async function uploadFile(file: File) {
+  const apiBase = getApiBaseUrl();
+  const formData = new FormData();
+  formData.append("file", file);
+  const headers = new Headers(getAuthHeaders());
+  const response = await fetch(`${apiBase}${API_ENDPOINTS.STAFF_UPLOAD}`, {
+    method: "POST",
+    headers,
+    body: formData,
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.detail || "Upload failed");
+  }
+  return response.json() as Promise<{ file_name: string; file_type: string; file_url: string }>;
+}
+
+export async function createLocation(payload: {
+  country: string;
+  county?: string;
+  subcounty?: string;
+  site_name?: string;
+  latitude?: number;
+  longitude?: number;
+  altitude?: number;
+}) {
+  return request(API_ENDPOINTS.STAFF_LOCATIONS, { method: "POST", body: JSON.stringify(payload) });
 }
