@@ -790,6 +790,76 @@ textarea:focus-visible {
   min-height: 260px;
 }
 
+.admin-table {
+  width: 100%;
+}
+
+.table-row {
+  align-items: center;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1.2fr 1.4fr 1fr 0.8fr 0.8fr;
+  padding: var(--space-3) var(--space-4);
+}
+
+.table-head {
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.table-row + .table-row {
+  border-top: 1px solid var(--color-line);
+}
+
+.table-row:hover {
+  background: rgba(15, 118, 110, 0.04);
+}
+
+.role-select {
+  background: var(--color-soft);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-size: 0.88rem;
+  min-height: 36px;
+  padding: 4px 8px;
+  width: 100%;
+}
+
+.role-select:focus {
+  border-color: var(--color-teal-600);
+  outline: none;
+}
+
+.button-delete {
+  color: var(--color-red-600);
+  font-size: 0.82rem;
+  min-height: auto;
+  padding: 6px 12px;
+}
+
+.button-delete:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.cell-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.cell-status .badge {
+  cursor: pointer;
+}
+
+.cell-status .badge:hover {
+  opacity: 0.8;
+}
+
 @media (max-width: 960px) {
   .hero,
   .admin-layout,

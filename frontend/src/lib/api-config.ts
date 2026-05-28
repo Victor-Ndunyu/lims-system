@@ -90,6 +90,7 @@ export const API_ENDPOINTS = {
   ADMIN_ROLES: "/api/admin/roles",
   ADMIN_PERMISSIONS: "/api/admin/permissions",
   ADMIN_ROLE_PERMISSIONS: (roleId: string) => `/api/admin/roles/${roleId}/permissions`,
+  ADMIN_USER_BY_ID: (userId: string) => `/api/admin/users/${userId}`,
 
   // Staff operations
   STAFF_SAMPLES: "/api/staff/samples",

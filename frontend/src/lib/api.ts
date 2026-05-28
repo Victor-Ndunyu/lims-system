@@ -130,6 +130,14 @@ export async function createAdminUser(payload: { full_name: string; email: strin
   return request(API_ENDPOINTS.ADMIN_USERS, { method: "POST", body: JSON.stringify(payload) });
 }
 
+export async function updateAdminUser(userId: string, payload: { role_name?: string; is_active?: boolean }) {
+  return request(API_ENDPOINTS.ADMIN_USER_BY_ID(userId), { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export async function deleteAdminUser(userId: string) {
+  return request(API_ENDPOINTS.ADMIN_USER_BY_ID(userId), { method: "DELETE" });
+}
+
 export async function fetchSamples(status?: string) {
   const query = status ? `?status=${encodeURIComponent(status)}` : "";
   return request(`${API_ENDPOINTS.STAFF_SAMPLES}${query}`);

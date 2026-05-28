@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session, selectinload
 from typing import List
 
-from app.core.deps import get_db, require_roles, require_permissions
+from app.core.deps import get_db, get_current_user, require_roles, require_permissions
 from app.core.security import hash_password
 from app.core.audit import log_audit
 from app.models.user import User
@@ -71,6 +71,18 @@ def update_user(user_id: str, user_in: UserUpdate, request: Request, db: Session
 
     log_audit(db=db, table_name="users", record_id=str(user.id), action="update", old_values=old_values, new_values={"email": user.email, "full_name": user.full_name, "is_active": user.is_active}, performed_by=None, ip_address=request.client.host if request.client else None)
     return user
+
+
+@router.delete("/users/{user_id}", status_code=204, dependencies=[Depends(require_roles("admin"))])
+def delete_user(user_id: str, request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if str(user.id) == str(current_user.id):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Cannot delete yourself")
+    log_audit(db=db, table_name="users", record_id=str(user.id), action="delete", old_values={"email": user.email, "full_name": user.full_name}, new_values=None, performed_by=str(current_user.id), ip_address=request.client.host if request.client else None)
+    db.delete(user)
+    db.commit()
 
 
 @router.post("/roles", response_model=RoleRead, status_code=201, dependencies=[Depends(require_roles("admin"))])
