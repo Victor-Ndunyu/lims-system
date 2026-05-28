@@ -83,14 +83,16 @@ export function Button({
   tone = "primary",
   type = "button",
   onClick,
+  disabled,
 }: {
   children: ReactNode;
   tone?: ButtonTone;
   type?: "button" | "submit";
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
-    <button className={`button button-${tone}`} type={type} onClick={onClick}>
+    <button className={`button button-${tone}`} type={type} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );
