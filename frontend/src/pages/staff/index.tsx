@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { PageShell, StatCard, StatusBadge, Alert, ButtonLink, EmptyState } from "../../components/ui";
+import { StaffLayout, StatCard, StatusBadge, Alert, ButtonLink, EmptyState } from "../../components/ui";
 import { useRequireAuth } from "../../lib/useRequireAuth";
 import { fetchSamples } from "../../lib/api";
 import type { SampleRow } from "../../types/sample";
@@ -22,14 +22,13 @@ export default function StaffDashboard() {
   }, [samples, status]);
 
   return (
-    <PageShell wide>
+    <StaffLayout active="records">
       <section className="page-title">
         <div>
           <p className="eyebrow">Staff workspace</p>
-          <h1>Field sample operations</h1>
+          <h1>Field sample records</h1>
           <p>View your submitted records, their review state, and next actions for ongoing sample workflows.</p>
         </div>
-        <ButtonLink href="/operations" tone="secondary">All operations</ButtonLink>
       </section>
 
       {error && <Alert tone="error">{error}</Alert>}
@@ -79,6 +78,6 @@ export default function StaffDashboard() {
           </div>
         )}
       </section>
-    </PageShell>
+    </StaffLayout>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, type ReactNode } from "react";
-import { fetchCurrentUser, logout as apiLogout } from "../lib/api";
+import { fetchCurrentUser, fetchMyPermissions, logout as apiLogout } from "../lib/api";
 import { clearAuth, getStoredUser, updateStoredUser, type UserSession } from "../lib/session";
 
 type ButtonTone = "primary" | "secondary" | "ghost";
@@ -151,6 +151,54 @@ export function AdminLayout({ children, active = "dashboard" }: { children: Reac
           <div className="sidebar-section">
             <p style={{ color: "rgba(255,255,255,0.72)", margin: 0 }}>
               Secure review, field sample tracking, and publication controls for verified animal-health records.
+            </p>
+          </div>
+        </aside>
+        <section>{children}</section>
+      </div>
+    </PageShell>
+  );
+}
+
+export function StaffLayout({ children, active = "records" }: { children: ReactNode; active?: string }) {
+  const [perms, setPerms] = useState<{ effective_permissions: string[] } | null>(null);
+
+  useEffect(() => {
+    fetchMyPermissions()
+      .then(setPerms)
+      .catch(() => {});
+  }, []);
+
+  const effective = new Set(perms?.effective_permissions ?? []);
+
+  const navItems = [
+    { href: "/staff", label: "Sample records", key: "records" },
+    { href: "/admin/samples/new", label: "New sample", key: "new", permission: "create_sample_record" },
+    { href: "/admin", label: "Dashboard", key: "dashboard", permission: "view_dashboards" },
+    { href: "/staff/permissions", label: "My permissions", key: "permissions" },
+    { href: "/staff/settings", label: "Settings", key: "settings" },
+  ];
+
+  const visibleNav = navItems.filter((item) => {
+    if (!item.permission) return true;
+    return effective.has(item.permission);
+  });
+
+  return (
+    <PageShell wide>
+      <div className="admin-layout">
+        <aside className="sidebar">
+          <p className="eyebrow">Navigation</p>
+          <h2 style={{ margin: "0 0 16px" }}>Operations</h2>
+          {visibleNav.map((item) => (
+            <Link key={item.key} className={active === item.key ? "active" : ""} href={item.href}>
+              <span aria-hidden="true" className="nav-dot" />
+              {item.label}
+            </Link>
+          ))}
+          <div className="sidebar-section">
+            <p style={{ color: "rgba(255,255,255,0.72)", margin: 0 }}>
+              Field sample operations &amp; account tools
             </p>
           </div>
         </aside>

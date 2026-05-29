@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PageShell, Alert, Button } from "../../components/ui";
+import { StaffLayout, Alert, Button } from "../../components/ui";
 import { useRequireAuth } from "../../lib/useRequireAuth";
 import { changePassword } from "../../lib/api";
 
@@ -45,7 +45,7 @@ export default function StaffSettings() {
   };
 
   return (
-    <PageShell wide>
+    <StaffLayout active="settings">
       <section className="page-title">
         <p className="eyebrow">Account</p>
         <h1>Settings</h1>
@@ -84,6 +84,6 @@ export default function StaffSettings() {
           </Button>
         </div>
       </form>
-    </PageShell>
+    </StaffLayout>
   );
 }

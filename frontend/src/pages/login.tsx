@@ -14,7 +14,7 @@ export default function LoginPage() {
   useEffect(() => {
     const existingUser = getStoredUser();
     if (existingUser) {
-      router.replace(isAdminRole(existingUser.role_name) ? "/admin" : "/operations");
+      router.replace(isAdminRole(existingUser.role_name) ? "/admin" : "/staff");
     }
   }, [router]);
 
@@ -29,7 +29,7 @@ export default function LoginPage() {
         throw new Error("Unexpected login response");
       }
       storeAuth(response.access_token, response.user);
-      router.replace(isAdminRole(response.user.role_name) ? "/admin" : "/operations");
+      router.replace(isAdminRole(response.user.role_name) ? "/admin" : "/staff");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

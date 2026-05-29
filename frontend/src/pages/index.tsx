@@ -23,8 +23,8 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <ButtonLink href="/public">Explore public records</ButtonLink>
-            <ButtonLink href="/operations" tone="secondary">
-              Open operations workspace
+            <ButtonLink href="/login" tone="secondary">
+              Open admin workspace
             </ButtonLink>
           </div>
         </div>

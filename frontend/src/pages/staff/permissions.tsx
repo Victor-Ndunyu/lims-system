@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PageShell, Alert, EmptyState } from "../../components/ui";
+import { StaffLayout, Alert, EmptyState } from "../../components/ui";
 import { useRequireAuth } from "../../lib/useRequireAuth";
 import { fetchMyPermissions } from "../../lib/api";
 
@@ -21,7 +21,7 @@ export default function StaffPermissions() {
   }, []);
 
   return (
-    <PageShell wide>
+    <StaffLayout active="permissions">
       <section className="page-title">
         <p className="eyebrow">Access control</p>
         <h1>My permissions</h1>
@@ -68,6 +68,6 @@ export default function StaffPermissions() {
           </section>
         </>
       )}
-    </PageShell>
+    </StaffLayout>
   );
 }
