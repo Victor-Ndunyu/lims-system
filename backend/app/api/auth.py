@@ -21,6 +21,18 @@ class ChangePasswordRequest(BaseModel):
             raise ValueError("Password must be at least 8 characters")
         return v
 
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def new_password_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -76,6 +88,16 @@ def change_password(
     current_user.password_hash = hash_password(data.new_password)
     db.commit()
     return {"message": "Password changed successfully"}
+
+
+@router.post("/reset-password")
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No account found with this email")
+    user.password_hash = hash_password(data.new_password)
+    db.commit()
+    return {"message": "Password reset successfully"}
 
 
 @router.post("/logout", response_model=LogoutResponse)

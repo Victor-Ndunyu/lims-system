@@ -23,9 +23,6 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <ButtonLink href="/public">Explore public records</ButtonLink>
-            <ButtonLink href="/login" tone="secondary">
-              Open admin workspace
-            </ButtonLink>
           </div>
         </div>
         <div className="hero-visual" aria-label="Animal health sample surveillance dashboard preview">

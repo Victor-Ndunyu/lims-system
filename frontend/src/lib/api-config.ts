@@ -83,6 +83,7 @@ export const API_ENDPOINTS = {
   AUTH_LOGOUT: "/api/auth/logout",
   AUTH_ME: "/api/auth/me",
   AUTH_CHANGE_PASSWORD: "/api/auth/change-password",
+  AUTH_RESET_PASSWORD: "/api/auth/reset-password",
 
   // Admin operations
   ADMIN_STATS: "/api/admin/stats",

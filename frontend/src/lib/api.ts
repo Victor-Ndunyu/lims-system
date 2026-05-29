@@ -107,6 +107,13 @@ export async function changePassword(oldPassword: string, newPassword: string) {
   });
 }
 
+export async function resetPassword(email: string, newPassword: string) {
+  return publicRequest(API_ENDPOINTS.AUTH_RESET_PASSWORD, {
+    method: "POST",
+    body: JSON.stringify({ email, new_password: newPassword }),
+  });
+}
+
 export async function fetchMyPermissions() {
   return request(API_ENDPOINTS.STAFF_MY_PERMISSIONS);
 }

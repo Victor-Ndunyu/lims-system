@@ -42,11 +42,15 @@ export function Topbar() {
         <Link className="nav-link" href="/public">
           Public portal
         </Link>
+        {user && (
+          <Link className="nav-link" href="/staff">
+            Operations
+          </Link>
+        )}
       </nav>
       <div className="topbar-actions">
         {user ? (
           <>
-            <Link className="nav-link" href="/operations">Operations</Link>
             <span className="nav-user">{user.full_name}</span>
             <button type="button" className="button button-ghost" onClick={handleLogout}>
               Sign out
@@ -134,6 +138,7 @@ export function AdminLayout({ children, active = "dashboard" }: { children: Reac
     { href: "/admin/users", label: "User management", key: "users" },
     { href: "/admin/permissions", label: "Permissions", key: "permissions" },
     { href: "/admin/samples/new", label: "New sample", key: "new" },
+    { href: "/staff/settings", label: "Settings", key: "settings" },
   ];
 
   return (
