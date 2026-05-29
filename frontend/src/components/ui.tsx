@@ -129,13 +129,11 @@ export function Alert({ children, tone }: { children: ReactNode; tone: "error" |
 
 export function AdminLayout({ children, active = "dashboard" }: { children: ReactNode; active?: string }) {
   const navItems = [
-    { href: "/operations", label: "Operations", key: "operations" },
     { href: "/admin", label: "Dashboard", key: "dashboard" },
     { href: "/admin/samples", label: "Records", key: "records" },
     { href: "/admin/users", label: "User management", key: "users" },
     { href: "/admin/permissions", label: "Permissions", key: "permissions" },
     { href: "/admin/samples/new", label: "New sample", key: "new" },
-    { href: "/staff/settings", label: "Settings", key: "settings" },
   ];
 
   return (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { PageShell, Alert } from "../components/ui";
+import { PageShell } from "../components/ui";
 import { useRequireAuth } from "../lib/useRequireAuth";
 import { fetchMyPermissions, fetchCurrentUser } from "../lib/api";
 import { getStoredUser, updateStoredUser } from "../lib/session";
@@ -30,7 +30,6 @@ const NAV_ITEMS: NavItem[] = [
 export default function OperationsPage() {
   const [user, setUser] = useState(getStoredUser());
   const [perms, setPerms] = useState<PermissionData | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useRequireAuth();
 
@@ -46,7 +45,7 @@ export default function OperationsPage() {
 
     fetchMyPermissions()
       .then(setPerms)
-      .catch((err) => setError(err.message));
+      .catch(() => {});
   }, []);
 
   const effective = new Set(perms?.effective_permissions ?? []);
@@ -75,7 +74,6 @@ export default function OperationsPage() {
           </div>
         </aside>
         <section>
-          {error && <Alert tone="error">{error}</Alert>}
           <section className="page-title">
             <div>
               <p className="eyebrow">Welcome{user ? `, ${user.full_name}` : ""}</p>
