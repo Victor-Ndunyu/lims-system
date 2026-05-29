@@ -29,7 +29,7 @@ export default function StaffDashboard() {
           <h1>Field sample operations</h1>
           <p>View your submitted records, their review state, and next actions for ongoing sample workflows.</p>
         </div>
-        <ButtonLink href="/admin" tone="secondary">Admin portal</ButtonLink>
+        <ButtonLink href="/operations" tone="secondary">All operations</ButtonLink>
       </section>
 
       {error && <Alert tone="error">{error}</Alert>}

@@ -46,9 +46,8 @@ export function Topbar() {
       <div className="topbar-actions">
         {user ? (
           <>
+            <Link className="nav-link" href="/operations">Operations</Link>
             <span className="nav-user">{user.full_name}</span>
-            <Link className="nav-link" href="/staff/permissions">Permissions</Link>
-            <Link className="nav-link" href="/staff/settings">Settings</Link>
             <button type="button" className="button button-ghost" onClick={handleLogout}>
               Sign out
             </button>
@@ -130,6 +129,7 @@ export function Alert({ children, tone }: { children: ReactNode; tone: "error" |
 
 export function AdminLayout({ children, active = "dashboard" }: { children: ReactNode; active?: string }) {
   const navItems = [
+    { href: "/operations", label: "Operations", key: "operations" },
     { href: "/admin", label: "Dashboard", key: "dashboard" },
     { href: "/admin/samples", label: "Records", key: "records" },
     { href: "/admin/users", label: "User management", key: "users" },
