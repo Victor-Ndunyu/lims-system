@@ -100,6 +100,17 @@ export async function fetchCurrentUser() {
   return request(API_ENDPOINTS.AUTH_ME);
 }
 
+export async function changePassword(oldPassword: string, newPassword: string) {
+  return request(API_ENDPOINTS.AUTH_CHANGE_PASSWORD, {
+    method: "POST",
+    body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+  });
+}
+
+export async function fetchMyPermissions() {
+  return request(API_ENDPOINTS.STAFF_MY_PERMISSIONS);
+}
+
 export async function fetchAdminStats(): Promise<AdminStats> {
   return request(API_ENDPOINTS.ADMIN_STATS);
 }

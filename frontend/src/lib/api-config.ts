@@ -82,6 +82,7 @@ export const API_ENDPOINTS = {
   AUTH_LOGIN: "/api/auth/login",
   AUTH_LOGOUT: "/api/auth/logout",
   AUTH_ME: "/api/auth/me",
+  AUTH_CHANGE_PASSWORD: "/api/auth/change-password",
 
   // Admin operations
   ADMIN_STATS: "/api/admin/stats",
@@ -94,6 +95,7 @@ export const API_ENDPOINTS = {
 
   // Staff operations
   STAFF_SAMPLES: "/api/staff/samples",
+  STAFF_MY_PERMISSIONS: "/api/staff/my-permissions",
   STAFF_SAMPLE_BY_ID: (id: string) => `/api/staff/samples/${id}`,
   STAFF_SAMPLE_REVIEW: (id: string) => `/api/staff/samples/${id}/review`,
   STAFF_LOOKUPS: "/api/staff/lookups",

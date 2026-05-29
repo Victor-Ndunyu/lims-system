@@ -46,6 +46,10 @@ export default function SampleDetails() {
   const [pickedLocation, setPickedLocation] = useState<{ country: string; county: string; subcounty: string; site_name: string } | null>(null);
   const [savingLocation, setSavingLocation] = useState(false);
   const [geocodeError, setGeocodeError] = useState(false);
+  const [manualCountry, setManualCountry] = useState("");
+  const [manualCounty, setManualCounty] = useState("");
+  const [manualSubcounty, setManualSubcounty] = useState("");
+  const [manualSiteName, setManualSiteName] = useState("");
   const [customSampleType, setCustomSampleType] = useState("");
   const [reviewDecision, setReviewDecision] = useState<string>("Approved");
   const [reviewComments, setReviewComments] = useState<string>("");
@@ -134,13 +138,13 @@ export default function SampleDetails() {
 
     try {
       const result = await reverseGeocode(lat, lng);
-      setPickedLocation({
-        country: result.country || "",
-        county: result.county || "",
-        subcounty: result.subcounty || "",
-        site_name: result.site_name || "",
-      });
-      setGeocodeError(!result.country && !result.county);
+      const c = result.country || "", cnt = result.county || "", sub = result.subcounty || "", site = result.site_name || "";
+      setPickedLocation({ country: c, county: cnt, subcounty: sub, site_name: site });
+      setManualCountry(c);
+      setManualCounty(cnt);
+      setManualSubcounty(sub);
+      setManualSiteName(site);
+      setGeocodeError(!c && !cnt);
     } catch {
       setGeocodeError(true);
       setPickedLocation(null);
@@ -172,10 +176,10 @@ export default function SampleDetails() {
     setError(null);
     try {
       const loc = await createLocation({
-        country: pickedLocation?.country || manualLat,
-        county: pickedLocation?.county || undefined,
-        subcounty: pickedLocation?.subcounty || undefined,
-        site_name: pickedLocation?.site_name || undefined,
+        country: manualCountry || pickedLocation?.country || String(mapLat),
+        county: manualCounty || pickedLocation?.county || undefined,
+        subcounty: manualSubcounty || pickedLocation?.subcounty || undefined,
+        site_name: manualSiteName || pickedLocation?.site_name || undefined,
         latitude: mapLat,
         longitude: mapLng,
       });
@@ -196,6 +200,10 @@ export default function SampleDetails() {
     setPickedLocation(null);
     setManualLat("");
     setManualLng("");
+    setManualCountry("");
+    setManualCounty("");
+    setManualSubcounty("");
+    setManualSiteName("");
     setGeocodeError(false);
   };
 
@@ -376,12 +384,23 @@ export default function SampleDetails() {
               {pickedLocation && !selectedLocation && (
                 <div className="picked-location-card">
                   <div className="picked-location-details">
-                    <div className="field"><label>Country</label><span>{pickedLocation.country || "—"}</span></div>
-                    <div className="field"><label>County</label><span>{pickedLocation.county || "—"}</span></div>
-                    <div className="field"><label>Subcounty / Area</label><span>{pickedLocation.subcounty || "—"}</span></div>
-                    <div className="field"><label>Site</label><span>{pickedLocation.site_name || "—"}</span></div>
+                    {geocodeError ? (
+                      <>
+                        <div className="field"><label>Country *</label><input value={manualCountry} onChange={(e) => setManualCountry(e.target.value)} placeholder="Country" /></div>
+                        <div className="field"><label>County</label><input value={manualCounty} onChange={(e) => setManualCounty(e.target.value)} placeholder="County" /></div>
+                        <div className="field"><label>Subcounty / Area</label><input value={manualSubcounty} onChange={(e) => setManualSubcounty(e.target.value)} placeholder="Subcounty" /></div>
+                        <div className="field"><label>Site name</label><input value={manualSiteName} onChange={(e) => setManualSiteName(e.target.value)} placeholder="Site name" /></div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="field"><label>Country</label><span>{pickedLocation.country || "—"}</span></div>
+                        <div className="field"><label>County</label><span>{pickedLocation.county || "—"}</span></div>
+                        <div className="field"><label>Subcounty / Area</label><span>{pickedLocation.subcounty || "—"}</span></div>
+                        <div className="field"><label>Site</label><span>{pickedLocation.site_name || "—"}</span></div>
+                      </>
+                    )}
                   </div>
-                  {geocodeError && <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "var(--space-3)" }}>Geocoding unavailable — you can still save this location.</p>}
+                  {geocodeError && <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "var(--space-3)" }}>Geocoding unavailable — fill in the location details manually.</p>}
                   <Button type="button" onClick={handleSaveLocation} disabled={savingLocation}>
                     {savingLocation ? "Saving…" : "Use this location"}
                   </Button>

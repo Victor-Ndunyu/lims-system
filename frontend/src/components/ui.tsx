@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, type ReactNode } from "react";
-import { logout as apiLogout } from "../lib/api";
-import { clearAuth, getStoredUser, type UserSession } from "../lib/session";
+import { fetchCurrentUser, logout as apiLogout } from "../lib/api";
+import { clearAuth, getStoredUser, updateStoredUser, type UserSession } from "../lib/session";
 
 type ButtonTone = "primary" | "secondary" | "ghost";
 
@@ -12,6 +12,14 @@ export function Topbar() {
 
   useEffect(() => {
     setUser(getStoredUser());
+    fetchCurrentUser()
+      .then((res) => {
+        if (res.user) {
+          updateStoredUser(res.user);
+          setUser(res.user);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   async function handleLogout() {
@@ -39,6 +47,8 @@ export function Topbar() {
         {user ? (
           <>
             <span className="nav-user">{user.full_name}</span>
+            <Link className="nav-link" href="/staff/permissions">Permissions</Link>
+            <Link className="nav-link" href="/staff/settings">Settings</Link>
             <button type="button" className="button button-ghost" onClick={handleLogout}>
               Sign out
             </button>
@@ -125,6 +135,7 @@ export function AdminLayout({ children, active = "dashboard" }: { children: Reac
     { href: "/admin/users", label: "User management", key: "users" },
     { href: "/admin/permissions", label: "Permissions", key: "permissions" },
     { href: "/admin/samples/new", label: "New sample", key: "new" },
+    { href: "/staff/settings", label: "Settings", key: "settings" },
   ];
 
   return (

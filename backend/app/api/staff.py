@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.core.deps import get_db, require_roles, get_current_user
 from app.models.attachment import Attachment
 from app.models.location import Location
+from app.models.permission import Permission, UserPermission
 from app.models.sample import Sample
 from app.models.sample_review import SampleReview
 from app.models.sample_type import SampleType
@@ -342,6 +343,43 @@ def create_sample_type(name: str, description: Optional[str] = None, db: Session
     db.commit()
     db.refresh(st)
     return st
+
+
+@router.get("/my-permissions", dependencies=[Depends(require_roles("field_officer", "analyst", "reviewer", "admin"))])
+def my_permissions(
+    current_user: User = Depends(require_roles("field_officer", "analyst", "reviewer", "admin")),
+    db: Session = Depends(get_db),
+):
+    role_name = current_user.role.role_name if current_user.role else None
+    role_description = current_user.role.description if current_user.role else None
+
+    # collect role permissions
+    role_perms = [{"key": p.permission_key, "description": p.description} for p in (current_user.role.permissions if current_user.role else [])]
+
+    # collect user-level overrides
+    overrides = db.query(UserPermission).filter(UserPermission.user_id == current_user.id).all()
+    override_keys = set()
+    for o in overrides:
+        permission = db.get(Permission, o.permission_id)
+        if permission:
+            override_keys.add(permission.permission_key)
+
+    # compute effective permission keys (role + granted overrides - denied overrides)
+    role_perm_keys = {p["key"] for p in role_perms}
+    granted_keys = {k for k in override_keys}
+    denied_keys = set()
+    for o in overrides:
+        permission = db.get(Permission, o.permission_id)
+        if permission and not o.granted:
+            denied_keys.add(permission.permission_key)
+    effective_keys = (role_perm_keys | granted_keys) - denied_keys
+
+    return {
+        "role": {"name": role_name, "description": role_description},
+        "role_permissions": role_perms,
+        "user_overrides": [{"granted": o.granted} for o in overrides],
+        "effective_permissions": list(effective_keys),
+    }
 
 
 @router.post("/upload", dependencies=[Depends(require_roles("field_officer", "analyst", "reviewer", "admin"))])

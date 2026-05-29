@@ -1,12 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
+from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, security_scheme, get_current_user
-from app.core.security import create_user_session, get_user_session_by_token, verify_password
+from app.core.security import create_user_session, get_user_session_by_token, hash_password, verify_password
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LogoutResponse, TokenResponse
 from app.schemas.user import UserRead
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def password_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -50,6 +63,19 @@ def whoami(current_user: User = Depends(get_current_user)):
         is_active=current_user.is_active
     )
     return TokenResponse(access_token="", user=user_data)
+
+
+@router.post("/change-password")
+def change_password(
+    data: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not verify_password(data.old_password, current_user.password_hash):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+    current_user.password_hash = hash_password(data.new_password)
+    db.commit()
+    return {"message": "Password changed successfully"}
 
 
 @router.post("/logout", response_model=LogoutResponse)

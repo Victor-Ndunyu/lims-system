@@ -33,6 +33,11 @@ export function clearAuth() {
   window.localStorage.removeItem(USER_KEY);
 }
 
+export function updateStoredUser(user: UserSession) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
 export function isAuthenticated() {
   return Boolean(getStoredToken());
 }

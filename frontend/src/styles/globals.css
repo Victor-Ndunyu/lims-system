@@ -1062,6 +1062,39 @@ textarea:focus-visible {
   font-size: 0.88rem;
 }
 
+.permission-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.permission-chip {
+  background: var(--color-bg-elevated, #f0f4f8);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3) var(--space-4);
+}
+
+.permission-key {
+  font-family: monospace;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.picked-location-details .field input {
+  background: #fbfdfc;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  min-height: 36px;
+  padding: 6px 10px;
+  width: 100%;
+  font-size: 0.88rem;
+}
+
 .coord-inputs {
   display: grid;
   gap: var(--space-3);
