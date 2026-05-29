@@ -162,11 +162,12 @@ export function AdminLayout({ children, active = "dashboard" }: { children: Reac
 
 export function StaffLayout({ children, active = "records" }: { children: ReactNode; active?: string }) {
   const [perms, setPerms] = useState<{ effective_permissions: string[] } | null>(null);
+  const [permsLoaded, setPermsLoaded] = useState(false);
 
   useEffect(() => {
     fetchMyPermissions()
-      .then(setPerms)
-      .catch(() => {});
+      .then((data) => { setPerms(data); setPermsLoaded(true); })
+      .catch(() => { setPermsLoaded(true); });
   }, []);
 
   const effective = new Set(perms?.effective_permissions ?? []);
@@ -179,10 +180,12 @@ export function StaffLayout({ children, active = "records" }: { children: ReactN
     { href: "/staff/settings", label: "Settings", key: "settings" },
   ];
 
-  const visibleNav = navItems.filter((item) => {
-    if (!item.permission) return true;
-    return effective.has(item.permission);
-  });
+  const visibleNav = !permsLoaded
+    ? navItems
+    : navItems.filter((item) => {
+        if (!item.permission) return true;
+        return effective.has(item.permission);
+      });
 
   return (
     <PageShell wide>
