@@ -32,24 +32,24 @@ export default function Home() {
           <div className="wave-panel">
             <p className="eyebrow">Diagnostic signal</p>
             <h3>Sample integrity monitor</h3>
-            {stats && stats.records_by_status.length > 0 ? (
-              <div className="chart-bar-group" aria-label="Samples by status">
-                {stats.records_by_status.map((item) => (
-                  <div className="chart-bar-item" key={item.status}>
-                    <span className="chart-bar-label">{item.status}</span>
-                    <div className="chart-bar-track">
-                      <div
-                        className="chart-bar-fill"
-                        style={{ width: `${Math.max(4, (item.count / Math.max(...stats.records_by_status.map((r) => r.count))) * 100)}%` }}
-                      />
+            {(() => {
+              const records = stats?.records_by_status;
+              if (!records || records.length === 0) return <p className="muted" style={{ padding: "40px 0", textAlign: "center" }}>No sample data yet</p>;
+              const maxCount = Math.max(...records.map((r) => r.count));
+              return (
+                <div className="chart-bar-group" aria-label="Samples by status">
+                  {records.map((item) => (
+                    <div className="chart-bar-item" key={item.status}>
+                      <span className="chart-bar-label">{item.status}</span>
+                      <div className="chart-bar-track">
+                        <div className="chart-bar-fill" style={{ width: `${Math.max(4, (item.count / maxCount) * 100)}%` }} />
+                      </div>
+                      <span className="chart-bar-value">{item.count}</span>
                     </div>
-                    <span className="chart-bar-value">{item.count}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="muted" style={{ padding: "40px 0", textAlign: "center" }}>No sample data yet</p>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
             <div className="grid grid-2">
               <StatCard label="Verified records" value={stats ? String(stats.published_records) : "—"} note="Approved for release" />
               <StatCard label="Coverage" value={stats ? String(stats.total_locations) : "—"} note="Field collection zones" />
