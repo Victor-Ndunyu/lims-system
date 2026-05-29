@@ -11,22 +11,20 @@ type PermissionData = {
   effective_permissions: string[];
 };
 
-type OperationLink = {
+type NavItem = {
   href: string;
   label: string;
-  description: string;
   permission?: string;
-  adminOnly?: boolean;
 };
 
-const ALL_OPERATIONS: OperationLink[] = [
-  { href: "/staff", label: "Sample records", description: "View and manage sample records", permission: "create_sample_record" },
-  { href: "/admin/samples/new", label: "New sample", description: "Create a new sample record", permission: "create_sample_record" },
-  { href: "/admin", label: "Admin dashboard", description: "Operational dashboards and statistics", permission: "view_dashboards" },
-  { href: "/admin/users", label: "User management", description: "Manage user accounts and roles", permission: "manage_users" },
-  { href: "/admin/permissions", label: "Role permissions", description: "Assign permissions to roles", permission: "manage_users" },
-  { href: "/staff/permissions", label: "My permissions", description: "View your granted permissions" },
-  { href: "/staff/settings", label: "Settings", description: "Change your password and preferences" },
+const NAV_ITEMS: NavItem[] = [
+  { href: "/staff", label: "Sample records", permission: "create_sample_record" },
+  { href: "/admin/samples/new", label: "New sample", permission: "create_sample_record" },
+  { href: "/admin", label: "Dashboard", permission: "view_dashboards" },
+  { href: "/admin/users", label: "User management", permission: "manage_users" },
+  { href: "/admin/permissions", label: "Role permissions", permission: "manage_users" },
+  { href: "/staff/permissions", label: "My permissions" },
+  { href: "/staff/settings", label: "Settings" },
 ];
 
 export default function OperationsPage() {
@@ -53,38 +51,63 @@ export default function OperationsPage() {
 
   const effective = new Set(perms?.effective_permissions ?? []);
 
-  const visibleOperations = ALL_OPERATIONS.filter((op) => {
-    if (!op.permission) return true;
-    if (op.adminOnly) return false;
-    return effective.has(op.permission);
+  const visibleNav = NAV_ITEMS.filter((item) => {
+    if (!item.permission) return true;
+    return effective.has(item.permission);
   });
 
   return (
     <PageShell wide>
-      <section className="page-title">
-        <div>
-          <p className="eyebrow">Operations</p>
-          <h1>Welcome{user ? `, ${user.full_name}` : ""}</h1>
-          <p>
-            {perms
-              ? `You are logged in as "${perms.role.name || "User"}". Select an operation below.`
-              : "Loading your access permissions..."}
-          </p>
-        </div>
-      </section>
-
-      {error && <Alert tone="error">{error}</Alert>}
-
-      <section className="section">
-        <div className="operations-grid">
-          {visibleOperations.map((op) => (
-            <Link key={op.href} href={op.href} className="operation-card">
-              <h3>{op.label}</h3>
-              <p className="muted">{op.description}</p>
+      <div className="admin-layout">
+        <aside className="sidebar">
+          <p className="eyebrow">Navigation</p>
+          <h2 style={{ margin: "0 0 16px" }}>Operations</h2>
+          {visibleNav.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <span aria-hidden="true" className="nav-dot" />
+              {item.label}
             </Link>
           ))}
-        </div>
-      </section>
+          <div className="sidebar-section">
+            <p style={{ color: "rgba(255,255,255,0.72)", margin: 0 }}>
+              {user?.full_name || "User"} &middot; {perms?.role.name || "Loading role..."}
+            </p>
+          </div>
+        </aside>
+        <section>
+          {error && <Alert tone="error">{error}</Alert>}
+          <section className="page-title">
+            <div>
+              <p className="eyebrow">Welcome{user ? `, ${user.full_name}` : ""}</p>
+              <h1>Operations hub</h1>
+              <p>
+                {perms
+                  ? `You are signed in as "${perms.role.name || "User"}". Use the sidebar to navigate to your available tools.`
+                  : "Loading your access permissions..."}
+              </p>
+            </div>
+          </section>
+          <section className="section">
+            <div className="card" style={{ padding: "var(--space-5)" }}>
+              <h3>Your role</h3>
+              <div className="form-grid" style={{ marginTop: 12 }}>
+                <div className="field">
+                  <label>Role</label>
+                  <div className="readonly-field" style={{ fontWeight: 600, fontSize: "1.1rem" }}>{perms?.role.name || "—"}</div>
+                </div>
+                <div className="field">
+                  <label>Description</label>
+                  <div className="readonly-field">{perms?.role.description || "—"}</div>
+                </div>
+                <div className="field">
+                  <label>Granted permissions</label>
+                  <div className="readonly-field">{perms?.effective_permissions.length ?? 0} permission{(perms?.effective_permissions.length ?? 0) !== 1 ? "s" : ""}</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+      </div>
     </PageShell>
   );
 }

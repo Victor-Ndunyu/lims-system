@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState, type FormEvent } from "react";
 import { PageShell, Button } from "../components/ui";
 import { login } from "../lib/api";
-import { getStoredUser, isAdminRole, storeAuth } from "../lib/session";
+import { getStoredUser, storeAuth } from "../lib/session";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,8 +42,8 @@ export default function LoginPage() {
       <section className="page-title">
         <div>
           <p className="eyebrow">Staff sign in</p>
-          <h1>Access the animal-health admin workspace</h1>
-          <p>Sign in with your staff credentials to manage samples, review data, and control access.</p>
+          <h1>Sign in to your account</h1>
+          <p>Enter your credentials to access the operations workspace.</p>
         </div>
       </section>
 
